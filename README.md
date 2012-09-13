@@ -7,21 +7,21 @@ it's still pretty rough, but it easily generates and renders geometry using cust
 put ofxScene in the addons folder
 
 #dependencies
-ofxAssimpModelLoader.h used for loading geometry from files. int the future it be nice to load animations and entire scenes
+ofxAssimpModelLoader.h used for loading geometry from files. in the future it'd be nice to load entire scenes & animations
 
-#ofxScene::Geometry
+##ofxScene::Geometry
 ofxScene::Geometry can be extended to create custom geometries and primitives( ofxScene::CubeGeometry, ofxScene::SphereGeometry, etc. )
 
-#ofxScene::Material
+##ofxScene::Material
 ofxScene::Material is an extension of ofShader that can be extended to to build custom materials( ofxScene::PhongMaterial(), ofxScene::LambertMaterial )
 any lights in the scene will be automatically updated at render time
 
 There is still lots of work to do here... add spot lights, shadow mapping, post-processing
 
-#ofxScene::Mesh
+##ofxScene::Mesh
 
-#ofxScene::Scene
+##ofxScene::Scene
 
-#ofxScene::Lights
+##ofxScene::Lights
 
 
