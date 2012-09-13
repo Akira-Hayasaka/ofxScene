@@ -150,7 +150,7 @@ void testApp::update(){
     
     
 //    dirLight.setDirection(sin(elapsedTime), cos(elapsedTime), 0);//uncomment to rotate directional Light
-//    dirLightMesh.rotateTo( dirLight.getDirection()*ofVec3f(1,-1,1) );//uncomment to rotate directional Light Mesh
+//    dirLightMesh.rotateTo( dirLight.getDirection() );//uncomment to rotate directional Light Mesh
     dirLight.setColor(sin(elapsedTime*.5)+1., cos(elapsedTime*.5)+1., 1. );
     dirLightColor = dirLight.getColor();
     
