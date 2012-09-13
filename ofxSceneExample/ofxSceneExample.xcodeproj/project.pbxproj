@@ -71,6 +71,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5007C1B416018C860010AE48 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		50B469AB15F6633100085728 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = bin/data/shaders; sourceTree = "<group>"; };
 		50E8D2FA160129B80072E1D4 /* ofxScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxScene.h; sourceTree = "<group>"; };
 		50E8D2FE16012A030072E1D4 /* DirectionalLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectionalLight.h; sourceTree = "<group>"; };
@@ -197,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				50E8D2D91601279E0072E1D4 /* src */,
+				5007C1B416018C860010AE48 /* README.md */,
 			);
 			name = ofxScene;
 			path = ../../../addons/ofxScene;
