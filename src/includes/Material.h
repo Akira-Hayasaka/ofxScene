@@ -1,16 +1,9 @@
 //
 //  Material.h
-//  ofxSceneExample
-//
-//  Created by lars berg on 8/18/12.
 //
 /*
  http://www.yaldex.com/open-gl/toc.html
  */
-
-
-
-//
 
 #pragma once
 #include "Shader.h"

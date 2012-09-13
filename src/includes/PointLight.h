@@ -1,9 +1,5 @@
 //
 //  PointLight.h
-//  ofxSceneExample
-//
-//  Created by lars berg on 8/29/12.
-//
 //
 
 

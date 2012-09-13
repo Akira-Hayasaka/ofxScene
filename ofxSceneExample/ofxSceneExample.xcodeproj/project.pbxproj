@@ -7,16 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		50E8D2FB160129B80072E1D4 /* ofxScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D2F9160129B80072E1D4 /* ofxScene.cpp */; };
-		50E8D30F16012A030072E1D4 /* DirectionalLight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D2FD16012A030072E1D4 /* DirectionalLight.cpp */; };
 		50E8D31016012A030072E1D4 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D2FF16012A030072E1D4 /* Geometry.cpp */; };
 		50E8D31116012A030072E1D4 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30116012A030072E1D4 /* Material.cpp */; };
 		50E8D31216012A030072E1D4 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30316012A030072E1D4 /* Mesh.cpp */; };
-		50E8D31316012A030072E1D4 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30516012A030072E1D4 /* Node3D.cpp */; };
-		50E8D31416012A030072E1D4 /* PointLight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30716012A030072E1D4 /* PointLight.cpp */; };
 		50E8D31516012A030072E1D4 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30916012A030072E1D4 /* Shader.cpp */; };
 		50E8D31616012A030072E1D4 /* VBO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30B16012A030072E1D4 /* VBO.cpp */; };
-		50E8D31716012A030072E1D4 /* VertexAttribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D30D16012A030072E1D4 /* VertexAttribute.cpp */; };
 		50E8D31E16012FD20072E1D4 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50E8D31C16012FD20072E1D4 /* Scene.cpp */; };
 		50F4A44C15F9FFE9009D74A9 /* libassimp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50F4A43815F9FFE9009D74A9 /* libassimp.a */; };
 		50F4A44D15F9FFE9009D74A9 /* libassimp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50F4A43A15F9FFE9009D74A9 /* libassimp.a */; };
@@ -77,9 +72,7 @@
 
 /* Begin PBXFileReference section */
 		50B469AB15F6633100085728 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = bin/data/shaders; sourceTree = "<group>"; };
-		50E8D2F9160129B80072E1D4 /* ofxScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxScene.cpp; sourceTree = "<group>"; };
 		50E8D2FA160129B80072E1D4 /* ofxScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxScene.h; sourceTree = "<group>"; };
-		50E8D2FD16012A030072E1D4 /* DirectionalLight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DirectionalLight.cpp; sourceTree = "<group>"; };
 		50E8D2FE16012A030072E1D4 /* DirectionalLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectionalLight.h; sourceTree = "<group>"; };
 		50E8D2FF16012A030072E1D4 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Geometry.cpp; sourceTree = "<group>"; };
 		50E8D30016012A030072E1D4 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Geometry.h; sourceTree = "<group>"; };
@@ -87,15 +80,12 @@
 		50E8D30216012A030072E1D4 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
 		50E8D30316012A030072E1D4 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
 		50E8D30416012A030072E1D4 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
-		50E8D30516012A030072E1D4 /* Node3D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node3D.cpp; sourceTree = "<group>"; };
 		50E8D30616012A030072E1D4 /* Node3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node3D.h; sourceTree = "<group>"; };
-		50E8D30716012A030072E1D4 /* PointLight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PointLight.cpp; sourceTree = "<group>"; };
 		50E8D30816012A030072E1D4 /* PointLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointLight.h; sourceTree = "<group>"; };
 		50E8D30916012A030072E1D4 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Shader.cpp; sourceTree = "<group>"; };
 		50E8D30A16012A030072E1D4 /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Shader.h; sourceTree = "<group>"; };
 		50E8D30B16012A030072E1D4 /* VBO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VBO.cpp; sourceTree = "<group>"; };
 		50E8D30C16012A030072E1D4 /* VBO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VBO.h; sourceTree = "<group>"; };
-		50E8D30D16012A030072E1D4 /* VertexAttribute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VertexAttribute.cpp; sourceTree = "<group>"; };
 		50E8D30E16012A030072E1D4 /* VertexAttribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexAttribute.h; sourceTree = "<group>"; };
 		50E8D31C16012FD20072E1D4 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		50E8D31D16012FD20072E1D4 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
@@ -215,7 +205,6 @@
 		50E8D2D91601279E0072E1D4 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				50E8D2F9160129B80072E1D4 /* ofxScene.cpp */,
 				50E8D2FA160129B80072E1D4 /* ofxScene.h */,
 				50E8D2FC16012A030072E1D4 /* includes */,
 			);
@@ -227,7 +216,6 @@
 			children = (
 				50E8D31C16012FD20072E1D4 /* Scene.cpp */,
 				50E8D31D16012FD20072E1D4 /* Scene.h */,
-				50E8D2FD16012A030072E1D4 /* DirectionalLight.cpp */,
 				50E8D2FE16012A030072E1D4 /* DirectionalLight.h */,
 				50E8D2FF16012A030072E1D4 /* Geometry.cpp */,
 				50E8D30016012A030072E1D4 /* Geometry.h */,
@@ -235,15 +223,12 @@
 				50E8D30216012A030072E1D4 /* Material.h */,
 				50E8D30316012A030072E1D4 /* Mesh.cpp */,
 				50E8D30416012A030072E1D4 /* Mesh.h */,
-				50E8D30516012A030072E1D4 /* Node3D.cpp */,
 				50E8D30616012A030072E1D4 /* Node3D.h */,
-				50E8D30716012A030072E1D4 /* PointLight.cpp */,
 				50E8D30816012A030072E1D4 /* PointLight.h */,
 				50E8D30916012A030072E1D4 /* Shader.cpp */,
 				50E8D30A16012A030072E1D4 /* Shader.h */,
 				50E8D30B16012A030072E1D4 /* VBO.cpp */,
 				50E8D30C16012A030072E1D4 /* VBO.h */,
-				50E8D30D16012A030072E1D4 /* VertexAttribute.cpp */,
 				50E8D30E16012A030072E1D4 /* VertexAttribute.h */,
 			);
 			path = includes;
@@ -599,16 +584,11 @@
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* testApp.cpp in Sources */,
 				50F4A45315F9FFE9009D74A9 /* ofxAssimpModelLoader.cpp in Sources */,
-				50E8D2FB160129B80072E1D4 /* ofxScene.cpp in Sources */,
-				50E8D30F16012A030072E1D4 /* DirectionalLight.cpp in Sources */,
 				50E8D31016012A030072E1D4 /* Geometry.cpp in Sources */,
 				50E8D31116012A030072E1D4 /* Material.cpp in Sources */,
 				50E8D31216012A030072E1D4 /* Mesh.cpp in Sources */,
-				50E8D31316012A030072E1D4 /* Node3D.cpp in Sources */,
-				50E8D31416012A030072E1D4 /* PointLight.cpp in Sources */,
 				50E8D31516012A030072E1D4 /* Shader.cpp in Sources */,
 				50E8D31616012A030072E1D4 /* VBO.cpp in Sources */,
-				50E8D31716012A030072E1D4 /* VertexAttribute.cpp in Sources */,
 				50E8D31E16012FD20072E1D4 /* Scene.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

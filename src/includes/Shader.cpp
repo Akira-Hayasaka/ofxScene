@@ -5,10 +5,6 @@
 #include "Shader.h"
 using namespace ofxScene;
 
-//void Shader::load( string _vert, string _farg ){
-//    //get strings from file and then load from strings
-//}
-
 void Shader::setShaderFromStrings( string _vert, string _frag ){
         
     vert = _vert;

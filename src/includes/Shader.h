@@ -1,8 +1,5 @@
 //
 //  Shader.h
-//  ofxSceneGraphExample
-//
-//  Created by lars berg on 7/16/12.
 //
 
 

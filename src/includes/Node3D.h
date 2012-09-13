@@ -1,9 +1,5 @@
 //
-//  Mesh.h
-//  ofxSceneGraph
-//
-//  Created by lars berg on 8/12/12.
-//
+//  Node3D.h
 //
 
 
