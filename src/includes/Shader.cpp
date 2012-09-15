@@ -270,6 +270,25 @@ void Shader::setUniform( string name, vector<ofMatrix3x3>* _value, bool transpos
         dynamicUniformsMatrices3fv[ name ] = _value;
     }
 };
+void Shader::setUniform( string name, vector<ofMatrix4x4>& _value, bool transpose ){
+    if(uniforms.count( name )){
+        begin();
+        glUniformMatrix4fv(uniforms[name].loc,
+                           _value.size(),
+                           transpose,
+                           &_value[0]._mat[0][0]);
+    }
+};
+
+
+void Shader::setUniform( string name, vector<ofMatrix4x4>* _value, bool transpose ){
+    setUniform( name, *_value, transpose );
+    ShaderUniform* uniformPointer = getUniform( name );
+    if( uniformPointer ){
+        dynamicUniforms[ name ] = uniformPointer;
+        dynamicUniformsMatrices4fv[ name ] = _value;
+    }
+};
 
 
 void Shader::setUniform( string name, vector<float>* _value ){

@@ -35,6 +35,7 @@ class testApp : public ofBaseApp{
     ofxScene::LambertMaterial lambertMaterial;
     
     ofxScene::Mesh cube;
+    ofxScene::Mesh cubeGround;
     ofxScene::Mesh sphere;
     ofxScene::Mesh facingRatioMesh;
     ofxScene::Mesh normalMesh;
@@ -54,7 +55,7 @@ class testApp : public ofBaseApp{
     vector<ofxScene::PointLight> pointLights;
     vector<ofxScene::Mesh> lightMeshes;
     
-    ofxScene::DirectionalLight dirLight;
-    ofxScene::Mesh dirLightMesh;
-    ofVec3f dirLightColor;
+    ofxScene::SpotLight spotLight;
+    ofxScene::Mesh spotLightMesh;
+    ofVec3f spotLightColor;
 };

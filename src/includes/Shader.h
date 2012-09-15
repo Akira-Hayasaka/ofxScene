@@ -8,6 +8,7 @@
 #include "VBO.h"
 #include "PointLight.h"
 #include "DirectionalLight.h"
+#include "SpotLight.h"
 
 
 namespace ofxScene{
@@ -96,6 +97,7 @@ namespace ofxScene{
         void setUniform( string name, vector<ofMatrix3x3>& _value, bool transpose = false );
         void setUniform( string name, vector<ofMatrix3x3>* _value, bool transpose = false );
         void setUniform( string name, vector<ofMatrix4x4>& _value, bool transpose = false  );
+        void setUniform( string name, vector<ofMatrix4x4>* _value, bool transpose = false  );
         
         /////////lights
         void setUniform( string name, vector<PointLight>& _value){
@@ -109,6 +111,13 @@ namespace ofxScene{
         };
         void setUniform( string name, vector<DirectionalLight>* _value){
             setUniform( name, (vector<ofMatrix3x3>* )_value );
+        }
+        
+        void setUniform( string name, vector<SpotLight>& _value){
+            setUniform( name, (vector<ofMatrix4x4>& )_value );
+        };
+        void setUniform( string name, vector<SpotLight>* _value){
+            setUniform( name, (vector<ofMatrix4x4>* )_value );
         }
         
         void setUniform( string name, vector<float>* _value );

@@ -29,16 +29,16 @@ void testApp::setup(){
         scene.add( lightMeshes[i] );
     }
     
-    dirLight.setDirection(ofVec3f(0,-1,0));
-    scene.add( dirLight );
+    spotLight.setPosition(ofVec3f(0,300,0));
+    scene.add( spotLight );
     
-    dirLightMesh.init(new ofxScene::ConeGeometry(10,25,7),
+    spotLightMesh.init(new ofxScene::ConeGeometry(20,30,20),
                       new ofxScene::FlatMaterial() );
-    dirLightMesh.position.y = -250;
-    dirLightMesh.wireframe = true;
-    dirLightMesh.doubleSided = true;
-    dirLightMesh.shader->setUniform( "DIFFUSE", &dirLightColor );//link "DIFFUSE" uniform to dirLightColor. the uniform will automatically update everyframe
-    scene.add( dirLightMesh );
+    spotLightMesh.position = spotLight.getPosition();
+    spotLightMesh.wireframe = true;
+    spotLightMesh.doubleSided = true;
+    spotLightMesh.shader->setUniform( "DIFFUSE", &spotLightColor );//link "DIFFUSE" uniform to spotLightColor. it will automatically update everyframe
+    scene.add( spotLightMesh );
     
 //cube mesh
     cube.init(new ofxScene::CubeGeometry(60,60,60),
@@ -79,7 +79,7 @@ void testApp::setup(){
     
     
 //dynamic geometry
-    dynamicSphere.init( 50 , 80, 50, false );
+    dynamicSphere.init( 50 , 70, 40, false );
     dynamicMesh.init( dynamicSphere, sphere.getShader() );
     scene.add( dynamicMesh );
     
@@ -130,6 +130,11 @@ void testApp::setup(){
     waltHead2.scale.set( 1.75 );
     waltHead2.wireframe = true;
     scene.add( waltHead2 );
+    
+    cubeGround.init( cube.geometry, waltHead1.shader );
+    cubeGround.scale.set( 500, 1, 500 );
+    cubeGround.position.y = -250;
+    scene.add( cubeGround );
 }
 
 //--------------------------------------------------------------
@@ -144,15 +149,15 @@ void testApp::update(){
         lightMeshes[i].position.set(sin(float(i)*step+elapsedTime*.25)*100,
                                     sin(float(i)*step+elapsedTime*.5)*200 + 100,
                                     cos(float(i)*step+elapsedTime*.25)*100 );
-        
+                
         pointLights[i].setPosition( lightMeshes[i].position );
     }
     
     
-//    dirLight.setDirection(sin(elapsedTime), cos(elapsedTime), 0);//uncomment to rotate directional Light
-//    dirLightMesh.rotateTo( dirLight.getDirection() );//uncomment to rotate directional Light Mesh
-    dirLight.setColor(sin(elapsedTime*.5)+1., cos(elapsedTime*.5)+1., 1. );
-    dirLightColor = dirLight.getColor();
+    spotLight.setDirection(sin(elapsedTime), cos(elapsedTime), 0);//uncomment to rotate directional Light
+    spotLightMesh.rotateTo( spotLight.getDirection() * ofVec3f(-1,1,1) );//uncomment to rotate directional Light Mesh
+    spotLight.setColor(sin(elapsedTime*.5)+1., cos(elapsedTime*.5)+1., 1. );
+    spotLightColor = spotLight.getColor();
     
     
     //mesh orientations

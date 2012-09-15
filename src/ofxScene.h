@@ -13,4 +13,5 @@
 #include "includes/Material.h"
 #include "includes/PointLight.h"
 #include "includes/DirectionalLight.h"
+#include "includes/SpotLight.h"
 #include "includes/Scene.h"

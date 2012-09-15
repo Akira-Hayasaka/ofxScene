@@ -66,6 +66,9 @@ namespace ofxScene{
         
         void rotateTo( ofVec3f direction ){
             orientation.makeRotate( direction, up );
+        }        
+        void rotateTo( float x, float y, float z ){
+            orientation.makeRotate( ofVec3f(x,y,z), up );
         }
         void addChild( Node3D& child ){
             children.push_back(&child);

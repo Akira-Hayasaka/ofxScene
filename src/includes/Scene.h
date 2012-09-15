@@ -21,6 +21,9 @@ namespace ofxScene{
         void add( DirectionalLight& directionalLight ){
             directionalLights.push_back( &directionalLight );
         }
+        void add( SpotLight& spotLight ){
+            spotLights.push_back( &spotLight );
+        }
         
         void transformPointLights( ofMatrix4x4& modelView ){
             pointLightsTransformed.resize( pointLights.size() );
@@ -42,6 +45,18 @@ namespace ofxScene{
         }
         
         
+        void transformSpotLights( ofMatrix4x4& modelView  ){
+            ofQuaternion rotQuat = modelView.getRotate();
+            spotLightsTransformed.resize( spotLights.size() );
+            for(int i=0; i<spotLights.size(); i++){
+                spotLightsTransformed[i] =  *spotLights[i];
+                spotLightsTransformed[i].setPosition( spotLightsTransformed[i].getPosition() * modelView );
+                spotLightsTransformed[i].setDirection( rotQuat * spotLightsTransformed[i].getDirection() );
+            }
+            
+        }
+        
+        
         void draw( ofCamera& camera ){
             camera.begin();//the camera clip planes and viewport are set here( privately )
 
@@ -51,6 +66,7 @@ namespace ofxScene{
             
             transformPointLights( modelView );
             transformDirectionalLights( modelView );
+            transformSpotLights( modelView );
 
             for(int i=0; i<meshes.size(); i++){
                 meshes[i]->shader->setUniform( "NUM_POINT_LIGHTS", int( pointLights.size() ) );
@@ -58,6 +74,9 @@ namespace ofxScene{
                 
                 meshes[i]->shader->setUniform( "NUM_DIRECTIONAL_LIGHTS", int( directionalLights.size() ) );
                 meshes[i]->shader->setUniform( "DIRECTIONAL_LIGHTS[0]", directionalLightsTransformed );
+                
+                meshes[i]->shader->setUniform( "NUM_SPOT_LIGHTS", int( spotLights.size() ) );
+                meshes[i]->shader->setUniform( "SPOT_LIGHTS[0]", spotLightsTransformed );
                 
                 meshes[i]->draw( modelView, projection );
             }
@@ -71,6 +90,10 @@ namespace ofxScene{
         
         vector <DirectionalLight*> directionalLights;
         vector <DirectionalLight> directionalLightsTransformed;
+        
+        vector <SpotLight*> spotLights;
+        vector <SpotLight> spotLightsTransformed;
+        vector <float> spotLightsFlattened;
         
         ofMatrix4x4 projection, modelView;
     };

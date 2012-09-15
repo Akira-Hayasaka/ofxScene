@@ -1,5 +1,5 @@
 //
-//  PointLight.h
+//  DirectionalLight.h
 //
 
 
@@ -30,12 +30,12 @@ namespace ofxScene{
         
         void setDirection( ofVec3f _dir ){
             _dir.normalize();
-            a = _dir.x;
+            a = -_dir.x;
             b = _dir.y;
             c = _dir.z;
         }
         void setDirection( float _x, float _y, float _z ){
-            ofVec3f dir( _x, _y, _z);
+            ofVec3f dir( -_x, _y, _z);
             dir.normalize();
             a = dir.x;
             b = dir.y;

@@ -65,88 +65,133 @@ namespace ofxScene{
         }
         
         string pointLightChunck(bool useSpecular = true ){
-            string PLChunck;
+            string chunck;
             
-            PLChunck += "void pointLight(";
-            PLChunck += "in int i, ";
-            PLChunck += "in vec3 eye, ";
-            PLChunck += "in vec3 ecPosition3, ";
-            PLChunck += "inout vec3 normal, ";
-            PLChunck += "inout vec3 ambient, ";
-            PLChunck += "inout vec3 diffuse";
-            if(useSpecular) PLChunck += ", inout vec3 specular ";
-            PLChunck += "){\n";
+            chunck += "void pointLight(";
+            chunck += "in int i, ";
+            chunck += "in vec3 eye, ";
+            chunck += "in vec3 ecPosition3, ";
+            chunck += "inout vec3 normal, ";
+            chunck += "inout vec3 ambient, ";
+            chunck += "inout vec3 diffuse";
+            if(useSpecular) chunck += ", inout vec3 specular ";
+            chunck += "){\n";
             
-            PLChunck += "    float nDotVP,attenuation,d;\n";
-            PLChunck += "    vec3 VP;\n";
+            chunck += "    float nDotVP,attenuation,d;\n";
+            chunck += "    vec3 VP;\n";
             
-            PLChunck += "    vec3 lightPos = POINT_LIGHTS[i][0];\n";
-            PLChunck += "    vec3 lightColor = POINT_LIGHTS[i][1];\n";
-            PLChunck += "    vec3 lightAtt = POINT_LIGHTS[i][2];\n";
+            chunck += "    vec3 lightPos = POINT_LIGHTS[i][0];\n";
+            chunck += "    vec3 lightColor = POINT_LIGHTS[i][1];\n";
+            chunck += "    vec3 lightAtt = POINT_LIGHTS[i][2];\n";
             
-            // Compute vector from surface to light position
-            PLChunck += "    VP = lightPos - ecPosition3;\n";
-//            PLChunck += "    VP = (viewMatrix * vec4(lightPos,1.)).xyz - ecPosition3;\n";
-            
-            // Compute distance between surface and light position
-            PLChunck += "    d = length(VP);\n";
-            
-            // Normalize the vector from surface to light position
-            PLChunck += "    VP = normalize(VP);\n";
-            
-            // Compute attenuation
-            PLChunck += "    attenuation = 1./(lightAtt.x + lightAtt.y*d + lightAtt.z*d*d);\n";
+            chunck += "    VP = lightPos - ecPosition3;\n";
+            chunck += "    d = length(VP);\n";
+            chunck += "    VP = normalize(VP);\n";
+            chunck += "    attenuation = 1./(lightAtt.x + lightAtt.y*d + lightAtt.z*d*d);\n";
             
             //diffuse
-            PLChunck += "    nDotVP = max(0.0, dot(normal, VP));\n";
-            PLChunck += "    diffuse += POINT_LIGHTS[i][1] * nDotVP * attenuation;\n";
+            chunck += "    nDotVP = max(0.0, dot(normal, VP));\n";
+            chunck += "    diffuse += lightColor * nDotVP * attenuation;\n";
             
             //specular
             if( useSpecular ){
-                PLChunck += "    vec3 halfVector = normalize(VP + eye);\n";
-                PLChunck += "    float nDotHV = max(0.0, dot(normal, halfVector));\n";
-                PLChunck += "    float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, SHININESS );\n";
-                PLChunck += "    specular += POINT_LIGHTS[i][1] * pf * attenuation;\n";
+                chunck += "    vec3 halfVector = normalize(VP + eye);\n";
+                chunck += "    float nDotHV = max(0.0, dot(normal, halfVector));\n";
+                chunck += "    float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, SHININESS );\n";
+                chunck += "    specular += lightColor * pf * attenuation;\n";
             }
             
             
-            PLChunck += "}\n";
+            chunck += "}\n";
             
-            return PLChunck;
+            return chunck;
         }
         
         string directionalLightChunck(bool useSpecular = true ){
             
-            string DLChunck;
+            string chunck;
             
-            DLChunck += "void directionalLight(in int i,\n";
-            DLChunck += "                      in vec3 normal,\n";
-            DLChunck += "                      in vec3 eye,\n";
-            DLChunck += "                      inout vec3 ambient,\n";
-            DLChunck += "                      inout vec3 diffuse";
-            if(useSpecular)  DLChunck += "                      , inout vec3 specular";
-            DLChunck += "){\n";
+            chunck += "void directionalLight(in int i,\n";
+            chunck += "                      in vec3 normal,\n";
+            chunck += "                      in vec3 eye,\n";
+            chunck += "                      inout vec3 ambient,\n";
+            chunck += "                      inout vec3 diffuse";
+            if(useSpecular)  chunck += "                      , inout vec3 specular";
+            chunck += "){\n";
             
-            DLChunck += "    vec3 lightDir = DIRECTIONAL_LIGHTS[i][0];\n";
-            DLChunck += "    vec3 lightColor = DIRECTIONAL_LIGHTS[i][1];\n";
+            chunck += "    vec3 lightDir = DIRECTIONAL_LIGHTS[i][0];\n";
+            chunck += "    vec3 lightColor = DIRECTIONAL_LIGHTS[i][1];\n";
 
-            DLChunck += "float nDotVP = max(0.0, dot(normal, lightDir ) );\n";
-            DLChunck += "diffuse  += lightColor * nDotVP;\n";
+            chunck += "float nDotVP = max(0.0, dot(normal, lightDir ) );\n";
+            chunck += "diffuse  += lightColor * nDotVP;\n";
             
             if(useSpecular){
-                DLChunck += "float nDotHV = max(0.0, dot(normal, normalize(lightDir+eye)));\n\n";
-                DLChunck += "float pf = (nDotVP == 0.0)? 0. : pow( nDotHV, SHININESS );\n";
-                DLChunck += "specular += lightColor * pf;\n";
+                chunck += "float nDotHV = max(0.0, dot(normal, normalize(lightDir+eye)));\n\n";
+                chunck += "float pf = (nDotVP == 0.0)? 0. : pow( nDotHV, SHININESS );\n";
+                chunck += "specular += lightColor * pf;\n";
             }
-            DLChunck += "}\n";
+            chunck += "}\n";
             
-            return DLChunck;
+            return chunck;
         }
+        
+        string spotLightChunck( bool useSpecular = true ){
+            string chunck;
+            chunck += "void spotLight(\n";
+            chunck += "in int i, ";
+            chunck += "in vec3 eye, ";
+            chunck += "in vec3 ecPosition3, ";
+            chunck += "inout vec3 normal, ";
+            chunck += "inout vec3 ambient, ";
+            chunck += "inout vec3 diffuse";
+            if(useSpecular) chunck += ", inout vec3 specular ";
+            chunck += "){\n";
+            
+            chunck += "    float nDotVP;           // normal . light direction\n";
+            chunck += "    float spotDot;          // cosine of angle between spotlight\n";
+            chunck += "    float spotAttenuation;  // spotlight attenuation factor\n";
+            chunck += "    float attenuation;      // computed attenuation factor\n";
+            chunck += "    float d;                // distance from surface to light source\n";
+            chunck += "    vec3 VP;                // direction from surface to light position\n";
+            
+            chunck += "    vec3 lightPos   = SPOT_LIGHTS[i][0].xyz;\n";
+            chunck += "    vec3 lightColor = SPOT_LIGHTS[i][1].xyz;\n";
+            chunck += "    vec3 lightAtt   = SPOT_LIGHTS[i][2].xyz;\n";
+            chunck += "    vec3 lightDir   = SPOT_LIGHTS[i][3].xyz;\n";
+            chunck += "    float cutoff    = SPOT_LIGHTS[i][0].w;\n";
+            chunck += "    float exponent  = SPOT_LIGHTS[i][1].w;\n";
+            
+            chunck += "    VP = lightPos - ecPosition3;\n";
+            chunck += "    d = length(VP);\n";
+            chunck += "    VP = normalize(VP);\n";
+            chunck += "    attenuation = 1.0 / (lightAtt.x + lightAtt.y*d + lightAtt.z * d * d);\n";
+            
+            chunck += "    spotDot = dot(-VP, normalize(lightDir));\n";
+            chunck += "    spotAttenuation = (spotDot < cutoff)? 0.0 : pow(spotDot, exponent);\n";
+            chunck += "    attenuation *= spotAttenuation;\n";
+            chunck += "    nDotVP = max(0.0, dot(normal, VP));\n";
+            
+            //            chunck += "    ambient  += gl_LightSource[i].ambient * attenuation;\n";
+            chunck += "    diffuse  += lightColor * nDotVP * attenuation;\n";
+            
+            if(useSpecular){
+                chunck += "    vec3 halfVector = normalize(VP + eye);\n";
+                chunck += "    float nDotHV = max(0.0, dot(normal, halfVector));\n";
+                chunck += "    float pf = (nDotVP == 0.0)? 0.0 : pow(nDotHV, SHININESS);\n";
+                chunck += "    specular += lightColor * pf * attenuation;\n";
+            }
+            
+            chunck += "}\n\n";
+            
+            
+            return chunck;
+        }
+        
         
         ofVec3f diffuse, specular, ambient;
         float alpha;
     };
-    
+        
     class FlatMaterial : public Material{
     public:
         FlatMaterial( ofVec3f _diffuse = ofVec3f(1,1,1), float _alpha = 1.f, ofTexture* texture = NULL ){
@@ -462,6 +507,8 @@ namespace ofxScene{
           frag += "uniform int NUM_POINT_LIGHTS;\n";
           frag += "uniform mat3 DIRECTIONAL_LIGHTS[16];\n";
           frag += "uniform int NUM_DIRECTIONAL_LIGHTS;\n";
+          frag += "uniform mat4 SPOT_LIGHTS[8];\n";
+          frag += "uniform int NUM_SPOT_LIGHTS;\n";
           
           frag += "uniform mat4 viewMatrix;\n";
           frag += "uniform vec3 DIFFUSE;\n";
@@ -482,6 +529,7 @@ namespace ofxScene{
           
           frag += pointLightChunck();
           frag += directionalLightChunck();
+          frag += spotLightChunck();
           
           frag += "void main(){\n";
           frag += "    vec3 diffuse = vec3(0.);\n";
@@ -495,6 +543,10 @@ namespace ofxScene{
           
           frag += "    for(int i=0; i<NUM_DIRECTIONAL_LIGHTS; i++){\n";
           frag += "        directionalLight( i, normal, eye, ambient, diffuse, specular );\n";
+          frag += "    }\n";
+          
+          frag += "    for(int i=0; i<NUM_SPOT_LIGHTS; i++){\n";
+          frag += "        spotLight( i, eye, ecPosition3, normal, ambient, diffuse, specular );\n";
           frag += "    }\n";
           
           if(texture){
@@ -598,6 +650,8 @@ namespace ofxScene{
           frag += "uniform int NUM_POINT_LIGHTS;\n";
           frag += "uniform mat3 DIRECTIONAL_LIGHTS[16];\n";
           frag += "uniform int NUM_DIRECTIONAL_LIGHTS;\n";
+          frag += "uniform mat4 SPOT_LIGHTS[8];\n";
+          frag += "uniform int NUM_SPOT_LIGHTS;\n";
           
           frag += "uniform mat4 viewMatrix;\n";
           frag += "uniform vec3 DIFFUSE;\n";
@@ -618,6 +672,7 @@ namespace ofxScene{
           
           frag += pointLightChunck( false );//false - don't need specular
           frag += directionalLightChunck( false );//false - don't need specular
+          frag += spotLightChunck( false );//false - don't need specular
           
           frag += "void main(){\n";
           
@@ -631,6 +686,10 @@ namespace ofxScene{
           
           frag += "    for(int i=0; i<NUM_DIRECTIONAL_LIGHTS; i++){\n";
           frag += "        directionalLight( i, normal, eye, ambient, diffuse );\n";
+          frag += "    }\n";
+          
+          frag += "    for(int i=0; i<NUM_SPOT_LIGHTS; i++){\n";
+          frag += "        spotLight( i, eye, ecPosition3, normal, ambient, diffuse );\n";
           frag += "    }\n";
           
           if(texture){
