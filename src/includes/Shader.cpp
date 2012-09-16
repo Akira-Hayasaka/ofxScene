@@ -28,6 +28,7 @@ void Shader::setShaderFromStrings( string _vert, string _frag ){
         isCompiled = false;
         cout<<endl<< _vert <<endl<<endl<< _frag <<endl<<endl;
     }
+
 }
 bool Shader::checkShaderCompile(){
     GLint vert_status = GL_FALSE;
@@ -139,7 +140,7 @@ void Shader::draw( VBO& geometry, GLenum renderType ){
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
     }
     
-    end();
+    glUseProgram(0);
 }
 
 

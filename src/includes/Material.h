@@ -91,18 +91,19 @@ namespace ofxScene{
             
             //diffuse
             chunck += "    nDotVP = max(0.0, dot(normal, VP));\n";
-            chunck += "    diffuse += lightColor * nDotVP * attenuation;\n";
+            chunck += "    if(nDotVP != 0.){\n";
+            chunck += "        diffuse += lightColor * nDotVP * attenuation;\n";
             
             //specular
             if( useSpecular ){
-                chunck += "    vec3 halfVector = normalize(VP + eye);\n";
-                chunck += "    float nDotHV = max(0.0, dot(normal, halfVector));\n";
-                chunck += "    float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, SHININESS );\n";
-                chunck += "    specular += lightColor * pf * attenuation;\n";
+                chunck += "        vec3 halfVector = normalize(VP + eye);\n";
+                chunck += "        float nDotHV = max(0.0, dot(normal, halfVector));\n";
+                chunck += "        float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, SHININESS );\n";
+                chunck += "        specular += lightColor * pf * attenuation;\n";
             }
             
             
-            chunck += "}\n";
+            chunck += "    }\n}\n";
             
             return chunck;
         }
@@ -168,21 +169,47 @@ namespace ofxScene{
             
             chunck += "    spotDot = dot(-VP, normalize(lightDir));\n";
             chunck += "    spotAttenuation = (spotDot < cutoff)? 0.0 : pow(spotDot, exponent);\n";
-            chunck += "    attenuation *= spotAttenuation;\n";
-            chunck += "    nDotVP = max(0.0, dot(normal, VP));\n";
+            chunck += "    if(spotAttenuation != 0.){;\n";
+            chunck += "        attenuation *= spotAttenuation;\n";
+            chunck += "        nDotVP = max(0.0, dot(normal, VP));\n";
             
             //            chunck += "    ambient  += gl_LightSource[i].ambient * attenuation;\n";
-            chunck += "    diffuse  += lightColor * nDotVP * attenuation;\n";
+            chunck += "        diffuse  += lightColor * nDotVP * attenuation;\n";
             
             if(useSpecular){
-                chunck += "    vec3 halfVector = normalize(VP + eye);\n";
-                chunck += "    float nDotHV = max(0.0, dot(normal, halfVector));\n";
-                chunck += "    float pf = (nDotVP == 0.0)? 0.0 : pow(nDotHV, SHININESS);\n";
-                chunck += "    specular += lightColor * pf * attenuation;\n";
+                chunck += "        vec3 halfVector = normalize(VP + eye);\n";
+                chunck += "        float nDotHV = max(0.0, dot(normal, halfVector));\n";
+                chunck += "        float pf = (nDotVP == 0.0)? 0.0 : pow(nDotHV, SHININESS);\n";
+                chunck += "        specular += lightColor * pf * attenuation;\n";
             }
             
+            chunck += "    }\n";
             chunck += "}\n\n";
             
+            
+            return chunck;
+        }
+        
+        string lightsChunck( bool useSpecular=true){
+            string chunck;
+            
+            chunck += "    for(int i=0; i<NUM_POINT_LIGHTS; i++){\n";
+            chunck += "        pointLight( i, eye, ecPosition3, normal, ambient, diffuse";
+            if(useSpecular) chunck += " , specular";
+            chunck += ");\n";
+            chunck += "    }\n";
+            
+            chunck += "    for(int i=0; i<NUM_DIRECTIONAL_LIGHTS; i++){\n";
+            chunck += "        directionalLight( i, normal, eye, ambient, diffuse";
+            if(useSpecular) chunck += " , specular";
+            chunck += ");\n";
+            chunck += "    }\n";
+            
+            chunck += "    for(int i=0; i<NUM_SPOT_LIGHTS; i++){\n";
+            chunck += "        spotLight( i, eye, ecPosition3, normal, ambient, diffuse";
+            if(useSpecular) chunck += " , specular";
+            chunck += ");\n";
+            chunck += "    }\n";
             
             return chunck;
         }
@@ -257,6 +284,7 @@ namespace ofxScene{
                 loadDefault();
                 cout << "FLAT MATERIAL DIDN'T COMPIILE LOADED A DEFAULT MATERIAL INSTEAD" << endl;
             }
+            glUseProgram(0);
             
         }
     };
@@ -325,8 +353,9 @@ namespace ofxScene{
                 }
             }else{
                 loadDefault();
-                cout << "Material didn't compiile loadinf defualt material instead" << endl;
+                cout << "Normal Material didn't compiile loading defualt material instead" << endl;
             }
+            glUseProgram(0);
             
         }
     };
@@ -432,6 +461,7 @@ namespace ofxScene{
               loadDefault();
               cout << "Material didn't compiile loadinf defualt material instead" << endl;
           }
+          glUseProgram(0);
           
         }
         
@@ -537,17 +567,7 @@ namespace ofxScene{
           frag += "    vec3 ambient = AMBIENT;\n";
           frag += "    vec3 normal = normalize( vNorm );\n";
           
-          frag += "    for(int i=0; i<NUM_POINT_LIGHTS; i++){\n";
-          frag += "        pointLight( i, eye, ecPosition3, normal, ambient, diffuse, specular );\n";
-          frag += "    }\n";
-          
-          frag += "    for(int i=0; i<NUM_DIRECTIONAL_LIGHTS; i++){\n";
-          frag += "        directionalLight( i, normal, eye, ambient, diffuse, specular );\n";
-          frag += "    }\n";
-          
-          frag += "    for(int i=0; i<NUM_SPOT_LIGHTS; i++){\n";
-          frag += "        spotLight( i, eye, ecPosition3, normal, ambient, diffuse, specular );\n";
-          frag += "    }\n";
+          frag += lightsChunck();
           
           if(texture){
               frag += "    diffuse *= texture2DRect( map, vUv ).xyz * DIFFUSE;\n";
@@ -582,6 +602,7 @@ namespace ofxScene{
               loadDefault();
               cout << "Phong Material didn't compiile. loaded defualt material instead" << endl;
           }
+          glUseProgram(0);
         }
         
         //variables
@@ -680,17 +701,7 @@ namespace ofxScene{
           frag += "    vec3 ambient = AMBIENT;\n";
           frag += "    vec3 normal = normalize( vNorm );\n";
           
-          frag += "    for(int i=0; i<NUM_POINT_LIGHTS; i++){\n";
-          frag += "        pointLight( i, eye, ecPosition3, normal, ambient, diffuse );\n";
-          frag += "    }\n";
-          
-          frag += "    for(int i=0; i<NUM_DIRECTIONAL_LIGHTS; i++){\n";
-          frag += "        directionalLight( i, normal, eye, ambient, diffuse );\n";
-          frag += "    }\n";
-          
-          frag += "    for(int i=0; i<NUM_SPOT_LIGHTS; i++){\n";
-          frag += "        spotLight( i, eye, ecPosition3, normal, ambient, diffuse );\n";
-          frag += "    }\n";
+          frag += lightsChunck(false);
           
           if(texture){
               frag += "    diffuse *= texture2DRect( map, vUv ).xyz * DIFFUSE;\n";
@@ -723,6 +734,7 @@ namespace ofxScene{
               loadDefault();
               cout << "Lambert Material didn't compiile. loaded defualt material instead" << endl;
           }
+          glUseProgram(0);
         }
     };
     

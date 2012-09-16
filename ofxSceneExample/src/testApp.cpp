@@ -29,10 +29,11 @@ void testApp::setup(){
         scene.add( lightMeshes[i] );
     }
     
+    spotLight.setCutoff(.9);
     spotLight.setPosition(ofVec3f(0,300,0));
     scene.add( spotLight );
     
-    spotLightMesh.init(new ofxScene::ConeGeometry(20,30,20),
+    spotLightMesh.init(new ofxScene::ConeGeometry(12,30),
                       new ofxScene::FlatMaterial() );
     spotLightMesh.position = spotLight.getPosition();
     spotLightMesh.wireframe = true;
@@ -52,7 +53,7 @@ void testApp::setup(){
 //sphere mesh
     sphere.init(new ofxScene::SphereGeometry( 50, 10, 5 ),
                 new ofxScene::PhongMaterial(ofVec3f(1),                             //diffuse
-                                            ofVec3f(.9),                            //specular
+                                            ofVec3f(1.1),                            //specular
                                             ofVec3f(0),                             //ambient
                                             1,                                      //alpha
                                             128,                                    //shineness
@@ -131,10 +132,12 @@ void testApp::setup(){
     waltHead2.wireframe = true;
     scene.add( waltHead2 );
     
-    cubeGround.init( cube.geometry, waltHead1.shader );
-    cubeGround.scale.set( 500, 1, 500 );
-    cubeGround.position.y = -250;
-    scene.add( cubeGround );
+//ground mesh
+    plane.init(new ofxScene::PlaneGeometry(600,600,20,20),
+               dynamicMesh.shader);
+    plane.position.set(0.,-250, 0);
+    plane.rotate(-90, 1, 0, 0);
+    scene.add( plane );
 }
 
 //--------------------------------------------------------------
@@ -142,23 +145,23 @@ void testApp::update(){
     ofSetWindowTitle( ofToString( ofGetFrameRate()) );
     float elapsedTime = ofGetElapsedTimef();
     
-    //move the lights around
+
+    //move point lights around
     float step = ofDegToRad(360/pointLights.size());
     for(int i=0; i<pointLights.size(); i++){
         
         lightMeshes[i].position.set(sin(float(i)*step+elapsedTime*.25)*100,
-                                    sin(float(i)*step+elapsedTime*.5)*200 + 100,
+                                    sin(float(i)*step+elapsedTime*.5)*200,
                                     cos(float(i)*step+elapsedTime*.25)*100 );
                 
         pointLights[i].setPosition( lightMeshes[i].position );
     }
     
-    
-    spotLight.setDirection(sin(elapsedTime), cos(elapsedTime), 0);//uncomment to rotate directional Light
-    spotLightMesh.rotateTo( spotLight.getDirection() * ofVec3f(-1,1,1) );//uncomment to rotate directional Light Mesh
-    spotLight.setColor(sin(elapsedTime*.5)+1., cos(elapsedTime*.5)+1., 1. );
-    spotLightColor = spotLight.getColor();
-    
+    //rotate spotlight and change it's color
+    spotLight.setDirection(sin(elapsedTime/2), -abs(cos(elapsedTime/2)), 0);
+    spotLightMesh.rotateTo( spotLight.getDirection() * ofVec3f(-1,1,1) );
+    spotLightColor.set(1.1) ;//spotLight.getDirection()*.5+.5;
+    spotLight.setColor( spotLightColor );
     
     //mesh orientations
     cube.rotate( sin(elapsedTime*.3)*180., cos(elapsedTime*.3)*180., 0 );
@@ -184,6 +187,16 @@ void testApp::update(){
     dynamicSphere.calcVertexNotmals();
     dynamicSphere.update();
     dynamicMesh.rotate( elapsedTime*10., 1,0,0 );
+    
+    plane.rotate( -90, elapsedTime, 0);
+    ofxScene::Geometry* g = plane.geometry;
+    float nval = elapsedTime ;
+    for(int i=0; i<g->vertices.size(); i++){
+//        g->vertices[i].z = ofNoise( g->vertices[i].x*.01,g->vertices[i].y*.01, nval ) * 50.;
+        g->vertices[i].z = sin(g->vertices[i].x*.01+nval) * cos(g->vertices[i].y*.01+nval) * 50.;
+    }
+    g->calcVertexNotmals();
+    g->update();
 }
 
 //--------------------------------------------------------------

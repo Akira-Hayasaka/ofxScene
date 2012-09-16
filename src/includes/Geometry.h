@@ -197,13 +197,65 @@ namespace ofxScene{
         int useCount;
     };
     
+    class PlaneGeometry : public Geometry{
+    public:
+        PlaneGeometry( float width=100, float height=100, int subdX=1, int subdY=1 ){
+            init( width, height, subdX, subdY);
+        }
+        ~PlaneGeometry(){};
+        
+        void init( float width=100, float height=100, int subdX=1, int subdY=1 ){
+            clearData();
+            subdX = max( 1, subdX );
+            subdY = max( 1, subdY );
+            
+            float halfWidth = width/2.f;
+            float halfHeight = height/2.f;
+            
+            //vertices
+            ofVec2f uv;
+            float xStep = 1.f/float( subdX );
+            float yStep = 1.f/float( subdY );
+            vector< vector<int> > vIndices( subdX+1 );
+            for(int x=0; x<=subdX; x++){
+                vIndices[x].resize( subdY+1 );
+                for(int y=0; y<=subdY; y++){
+                    vIndices[x][y] = vertices.size();
+                    uv.set(xStep*float(x), yStep*float(y));
+                    texCoords.push_back( uv );
+                    vertices.push_back( ofVec3f(ofMap(uv.x, 0, 1, -halfWidth, halfWidth),
+                                                ofMap(uv.y, 0, 1, -halfHeight, halfHeight),
+                                                0));
+                    
+                }
+            }
+            
+            //faces
+            for(int x=0;x<subdX;x++){
+                for(int y=0; y<subdY;y++){
+                    addFace(vIndices[x][y], vIndices[x+1][y], vIndices[x+1][y+1], vIndices[x][y+1]);
+//                    addFace(vIndices[x][y], vIndices[x][y+1], vIndices[x+1][y+1], vIndices[x+1][y] );
+                }
+            }
+            
+            //calculate normals
+            calcVertexNotmals();
+            
+            //add indices
+            updateFaceIndices();
+            
+            addAttribute( "position", vertices );
+            addAttribute( "normal", normals );
+            addAttribute( "texCoord", texCoords );
+            addIndices( indices );
+        }
+    };
+    
     
     class SphereGeometry : public Geometry{
     public:
         
         SphereGeometry( float radius = 50, int _subdX = 31, int _subdY = 10, bool weldSeam = false ){
-            bUpdateFaceIndices = false;
-            bUpdateVertexData = true;
             
             init( radius, _subdX, _subdY, weldSeam );
         };
@@ -388,7 +440,7 @@ namespace ofxScene{
             //faces
             capCenter = vertices.size()-1;
             for( int x=0; x<subdX; x++){
-                addFace(x + vCount, x+1+vCount, capCenter );
+                addFace(x + vCount, capCenter, x+1+vCount );
             }
             
             //calculate normals
@@ -409,8 +461,6 @@ namespace ofxScene{
     public:
         
         CubeGeometry(float width = 1.f, float height = 1.f, float depth = 1.f){
-            bUpdateFaceIndices = false;
-            bUpdateVertexData = true;
             
             init( width, height, depth);
         };

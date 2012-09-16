@@ -9,7 +9,10 @@ namespace ofxScene{
     
     class Scene{
     public:
-        Scene(){};
+        Scene(){
+            autoClearColor = true;
+            autoClearDepth = true;
+        };
         ~Scene(){};
         
         void add( Mesh& mesh ){
@@ -57,7 +60,12 @@ namespace ofxScene{
         }
         
         
-        void draw( ofCamera& camera ){
+        void draw( ofCamera& camera, ofFbo* fbo=NULL ){
+            if(fbo){
+                fbo->begin();
+                if(autoClearColor)  glClear( GL_COLOR_BUFFER_BIT );
+                if(autoClearDepth)  glClear( GL_DEPTH_BUFFER_BIT );
+            }
             camera.begin();//the camera clip planes and viewport are set here( privately )
 
             //set projection and modelview matrices
@@ -81,7 +89,16 @@ namespace ofxScene{
                 meshes[i]->draw( modelView, projection );
             }
             
+            if(fbo){
+                fbo->end();
+            }
+            
             camera.end();
+        }
+        
+        void setAutoClear( bool _color, bool _depth ){
+            autoClearColor = _color;
+            autoClearDepth = _depth;
         }
         
         vector <Mesh*> meshes;
@@ -96,5 +113,8 @@ namespace ofxScene{
         vector <float> spotLightsFlattened;
         
         ofMatrix4x4 projection, modelView;
+        
+        bool autoClearColor;
+        bool autoClearDepth;
     };
 }

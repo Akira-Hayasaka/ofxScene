@@ -34,6 +34,7 @@ class testApp : public ofBaseApp{
 
     ofxScene::LambertMaterial lambertMaterial;
     
+    ofxScene::Mesh plane;
     ofxScene::Mesh cube;
     ofxScene::Mesh cubeGround;
     ofxScene::Mesh sphere;
