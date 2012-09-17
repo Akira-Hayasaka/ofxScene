@@ -56,6 +56,8 @@ namespace ofxScene{
             }
         }
         
+//TODO::   void bind(Shader* shader); it'd be nice to bind the geometry and shader once, "instancing" an array of nodes
+        
         
         //faces
         void addFace( int v0, int v1, int v2, int v3 = -1 ){

@@ -102,7 +102,7 @@ void Shader::draw( VBO& geometry, GLenum renderType ){
     map< string, ShaderUniform > uniforms;
     
     VertexAttributeBase* attr = NULL;
-    
+
     //bind all the applicable vertex buffers
     for(a_it = attributes.begin(); a_it != attributes.end(); a_it++){
         attr = geometry.getAttr( a_it->first );
@@ -121,7 +121,8 @@ void Shader::draw( VBO& geometry, GLenum renderType ){
     
     if(geometry.getAttr("indices") == NULL ){
         glDrawArrays( renderType, 0, (attr)? attr->count : 0 );
-    }else{
+    }
+    else{
         attr = geometry.getAttr("indices");
         
         //bind and draw the indices
@@ -139,8 +140,6 @@ void Shader::draw( VBO& geometry, GLenum renderType ){
         glDisableVertexAttribArray( a_it->second );
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
     }
-    
-    glUseProgram(0);
 }
 
 

@@ -30,14 +30,11 @@ class testApp : public ofBaseApp{
     
     ofxScene::Scene scene;
 
-    ofxScene::SphereGeometry sphereGeometry;
-
     ofxScene::LambertMaterial lambertMaterial;
     
     ofxScene::Mesh plane;
     ofxScene::Mesh cube;
-    ofxScene::Mesh cubeGround;
-    ofxScene::Mesh sphere;
+//    ofxScene::Mesh sphere;
     ofxScene::Mesh facingRatioMesh;
     ofxScene::Mesh normalMesh;
     ofxScene::Mesh dynamicMesh;
@@ -53,6 +50,7 @@ class testApp : public ofBaseApp{
     ofxScene::Mesh waltHead1;
     ofxScene::Mesh waltHead2;
     
+    ofxScene::SphereGeometry sphereGeometry;
     vector<ofxScene::PointLight> pointLights;
     vector<ofxScene::Mesh> lightMeshes;
     

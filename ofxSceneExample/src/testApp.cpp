@@ -51,14 +51,14 @@ void testApp::setup(){
     scene.add( cube );
     
 //sphere mesh
-    sphere.init(new ofxScene::SphereGeometry( 50, 10, 5 ),
-                new ofxScene::PhongMaterial(ofVec3f(1),                             //diffuse
-                                            ofVec3f(1.1),                            //specular
-                                            ofVec3f(0),                             //ambient
-                                            1,                                      //alpha
-                                            128,                                    //shineness
-                                            &globeImage.getTextureReference() ) );  //texture map
-    sphere.position.y += 150;
+    ofxScene::Mesh* sphere = new ofxScene::Mesh(new ofxScene::SphereGeometry( 50, 20, 10 ),
+                                                new ofxScene::PhongMaterial(ofVec3f(1),                             //diffuse
+                                                                            ofVec3f(1.1),                            //specular
+                                                                            ofVec3f(0),                             //ambient
+                                                                            1,                                      //alpha
+                                                                            128,                                    //shineness
+                                                                            &globeImage.getTextureReference() ) );  //texture map
+    sphere->position.y += 150;
     scene.add( sphere );
     
 //parenting
@@ -81,7 +81,7 @@ void testApp::setup(){
     
 //dynamic geometry
     dynamicSphere.init( 50 , 70, 40, false );
-    dynamicMesh.init( dynamicSphere, sphere.getShader() );
+    dynamicMesh.init( dynamicSphere, sphere->getShader() );
     scene.add( dynamicMesh );
     
     normalMesh.init( dynamicSphere, normalMat );
@@ -165,7 +165,7 @@ void testApp::update(){
     
     //mesh orientations
     cube.rotate( sin(elapsedTime*.3)*180., cos(elapsedTime*.3)*180., 0 );
-    sphere.rotate( elapsedTime*5, 0,1,0 );
+//    sphere.rotate( elapsedTime*5, 0,1,0 );
     
     waltHead.rotate(mouseX, 0, 1, 0);           //degrees, axisXYZ
     waltHead1.rotate(mouseX + mouseY, 0, 0, 1); //degrees, axisXYZ

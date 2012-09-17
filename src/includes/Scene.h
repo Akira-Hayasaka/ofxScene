@@ -13,11 +13,41 @@ namespace ofxScene{
             autoClearColor = true;
             autoClearDepth = true;
         };
-        ~Scene(){};
+        ~Scene(){
+            for(int i=0; i<allocatedMeshes.size(); i++){
+                allocatedMeshes[i]->useCount--;
+                if(allocatedMeshes[i]->useCount <= 0){
+                    cout << "deleting mesh" << endl;
+                    delete allocatedMeshes[i];
+                    allocatedMeshes[i] = NULL;
+                }
+            }
+            
+            for(int i=0; i<allocatedPointLights.size(); i++){
+                delete allocatedPointLights[i];
+                allocatedPointLights[i] = NULL;
+            }
+            for(int i=0; i<allocatedDirectionalLights.size(); i++){
+                delete allocatedDirectionalLights[i];
+                allocatedDirectionalLights[i] = NULL;
+            }
+            for(int i=0; i<allocatedSpotLights.size(); i++){
+                delete allocatedSpotLights[i];
+                allocatedSpotLights[i] = NULL;
+            }
+        };
         
         void add( Mesh& mesh ){
             meshes.push_back( &mesh );
         }
+        
+        Mesh* add( Mesh* mesh ){
+            allocatedMeshes.push_back( mesh );
+            mesh->useCount++;
+            add( *mesh );
+            return mesh;
+        }
+        
         void add( PointLight& pointLight ){
             pointLights.push_back( &pointLight );
         }
@@ -26,6 +56,21 @@ namespace ofxScene{
         }
         void add( SpotLight& spotLight ){
             spotLights.push_back( &spotLight );
+        }
+        PointLight* add( PointLight* pointLight ){
+            allocatedPointLights.push_back( pointLight );
+            add( *pointLight );
+            return pointLight;
+        }
+        DirectionalLight* add( DirectionalLight* directionalLight ){
+            allocatedDirectionalLights.push_back( directionalLight );
+            add( *directionalLight );
+            return directionalLight;
+        }
+        SpotLight* add( SpotLight* spotLight ){
+            allocatedSpotLights.push_back( spotLight );
+            add( *spotLight );
+            return spotLight;
         }
         
         void transformPointLights( ofMatrix4x4& modelView ){
@@ -77,14 +122,18 @@ namespace ofxScene{
             transformSpotLights( modelView );
 
             for(int i=0; i<meshes.size(); i++){
-                meshes[i]->shader->setUniform( "NUM_POINT_LIGHTS", int( pointLights.size() ) );
-                meshes[i]->shader->setUniform( "POINT_LIGHTS[0]", pointLightsTransformed );
-                
-                meshes[i]->shader->setUniform( "NUM_DIRECTIONAL_LIGHTS", int( directionalLights.size() ) );
-                meshes[i]->shader->setUniform( "DIRECTIONAL_LIGHTS[0]", directionalLightsTransformed );
-                
-                meshes[i]->shader->setUniform( "NUM_SPOT_LIGHTS", int( spotLights.size() ) );
-                meshes[i]->shader->setUniform( "SPOT_LIGHTS[0]", spotLightsTransformed );
+                if(pointLights.size()){
+                    meshes[i]->shader->setUniform( "NUM_POINT_LIGHTS", int( pointLights.size() ) );
+                    meshes[i]->shader->setUniform( "POINT_LIGHTS[0]", pointLightsTransformed );
+                }
+                if(directionalLights.size()){
+                    meshes[i]->shader->setUniform( "NUM_DIRECTIONAL_LIGHTS", int( directionalLights.size() ) );
+                    meshes[i]->shader->setUniform( "DIRECTIONAL_LIGHTS[0]", directionalLightsTransformed );
+                }
+                if(spotLights.size()){
+                    meshes[i]->shader->setUniform( "NUM_SPOT_LIGHTS", int( spotLights.size() ) );
+                    meshes[i]->shader->setUniform( "SPOT_LIGHTS[0]", spotLightsTransformed );
+                }
                 
                 meshes[i]->draw( modelView, projection );
             }
@@ -97,6 +146,7 @@ namespace ofxScene{
         }
         
         void setAutoClear( bool _color, bool _depth ){
+            //only useful when drawing to a FBO
             autoClearColor = _color;
             autoClearDepth = _depth;
         }
@@ -116,5 +166,10 @@ namespace ofxScene{
         
         bool autoClearColor;
         bool autoClearDepth;
+        
+        vector <Mesh*> allocatedMeshes;
+        vector<PointLight*> allocatedPointLights;
+        vector<DirectionalLight*> allocatedDirectionalLights;
+        vector<SpotLight*> allocatedSpotLights;
     };
 }

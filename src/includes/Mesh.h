@@ -15,6 +15,34 @@ namespace ofxScene{
     public:
         
         Mesh(){
+            setDefaultVars();
+        };
+        Mesh( Geometry& _geometry, Shader& _shader ){
+            setDefaultVars();
+            init( _geometry, _shader );
+        }
+        
+        Mesh( Geometry& _geometry, Shader* _shader ){
+            setDefaultVars();
+            init( _geometry, _shader );
+        }
+        
+        Mesh( Geometry* _geometry, Shader& _shader ){
+            setDefaultVars();
+            init( _geometry, _shader );
+        }
+        
+        Mesh( Geometry* _geometry, Shader* _shader ){
+            setDefaultVars();
+            init( _geometry, _shader );
+        }
+        
+        ~Mesh(){
+            removeAllocatedShader();
+            removeAllocatedGeometry();
+        };
+        
+        void setDefaultVars(){
             lastFrame = -1;
             parent = NULL;
             wireframe = false;
@@ -22,29 +50,28 @@ namespace ofxScene{
             renderType = GL_TRIANGLES;
             depthTest = true;
             doubleSided = false;
-            deallocateShader = NULL;
-            deallocateGeometry = NULL;
-        };
-        ~Mesh(){
-
-            removeAllocatedShader();
-            removeAllocatedGeometry();
-        };
+            allocatedShader = NULL;
+            allocatedGeometry = NULL;
+            useCount = 0;
+        }
+        
         void removeAllocatedShader(){
-            if( deallocateShader != NULL ){
-                deallocateShader->useCount--;
-                if(deallocateShader->useCount <= 0){
+            if( allocatedShader != NULL ){
+                allocatedShader->useCount--;
+                if(allocatedShader->useCount <= 0){
                     cout << "deleting shader" << endl;
-                    delete deallocateShader;
+                    delete allocatedShader;
+                    allocatedShader = NULL;
                 }
             }
         }
         void removeAllocatedGeometry(){
-            if(deallocateGeometry){
-                deallocateGeometry->useCount--;
-                if(deallocateGeometry->useCount <= 0){
+            if(allocatedGeometry){
+                allocatedGeometry->useCount--;
+                if(allocatedGeometry->useCount <= 0){
                     cout << "deleting geometry" << endl;
-                    delete deallocateGeometry;
+                    delete allocatedGeometry;
+                    allocatedGeometry = NULL;
                 }
             }
         }
@@ -52,13 +79,13 @@ namespace ofxScene{
         void allocateShader(Shader* _shader = NULL){
             removeAllocatedShader();
             
-            deallocateShader = _shader;
+            allocatedShader = _shader;
             _shader->useCount++;
         }
         void allocateGeometry(Geometry* _geometry = NULL){
             removeAllocatedGeometry();
             
-            deallocateGeometry = _geometry;
+            allocatedGeometry = _geometry;
             _geometry->useCount++;
         }
         
@@ -110,8 +137,8 @@ namespace ofxScene{
         
         void draw( ofMatrix4x4 viewMatrix, ofMatrix4x4 projectionMatrix ){
 
-            if( shader->getProgram() != 0 ){
-                updateMatrices();
+            if( geometry != NULL && shader != NULL && shader->getProgram() != 0 ){
+                updateMatrices(false);
                 
                 ofMatrix4x4 modelViewMatrix = worldMatrix * viewMatrix;
                 
@@ -147,13 +174,14 @@ namespace ofxScene{
 //    private:
         Shader* shader;
         Geometry* geometry;
-        Shader* deallocateShader;
-        Geometry* deallocateGeometry;
+        Shader* allocatedShader;
+        Geometry* allocatedGeometry;
         
     public:
         
         int lastFrame;
         bool wireframe, depthTest, doubleSided;
         GLenum cull, renderType;
+        int useCount;
     };
 }
