@@ -57,4 +57,8 @@ class testApp : public ofBaseApp{
     ofxScene::SpotLight spotLight;
     ofxScene::Mesh spotLightMesh;
     ofVec3f spotLightColor;
+    
+    ofxScene::Mesh debugMesh;
+    ofxScene::NormalDisplayMesh normalDisplayMesh;
+    
 };

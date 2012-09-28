@@ -45,6 +45,66 @@ namespace ofxScene{
     public:
         Shader(){};
         ~Shader(){};
+        
+        
+        
+        bool bindGeometry(VBO* vbo){
+            bool useIndices = false;
+            
+            begin();
+            
+            //uniforms
+            updateDynamicUniforms();
+            //uniform textures
+            for (u_it = uniforms.begin(); u_it != uniforms.end(); u_it++) {
+                if(u_it->second.type == GL_SAMPLER_2D ){
+                    setUniformTexture(u_it->first.c_str(), *u_it->second.tex, u_it->second.texloc );
+                }
+            }
+            
+            //GEOMETRY
+            VertexAttributeBase* attr = NULL;
+            
+            //bind all the applicable vertex buffers
+            for(a_it = attributes.begin(); a_it != attributes.end(); a_it++){
+                attr = vbo->getAttr( a_it->first );
+                if(attr != NULL ){
+                    attr->bind();
+                    
+                    glEnableVertexAttribArray( a_it->second );
+                    glVertexAttribPointer(a_it->second,
+                                          attr->size,
+                                          attr->type,
+                                          GL_FALSE,
+                                          attr->stride,
+                                          (GLvoid *)0);
+                }
+            }
+            
+            if(vbo->getAttr("indices") == NULL ){
+//                VertexAttributeBase* attr = meshes[i]->geometry->attributes.begin()->second;
+//                glDrawArrays( meshes[i]->renderType, 0, (attr)? attr->count : 0 );
+                useIndices = false;
+            }
+            else{
+                useIndices = true;
+                VertexAttributeBase* attr = vbo->getAttr("indices");
+                
+                //bind and draw the indices
+                attr->bind();
+                glIndexPointer( GL_UNSIGNED_INT, 0, 0);
+//                glDrawElements( meshes[i]->renderType, attr->count, GL_UNSIGNED_INT, 0);
+                
+                //unbind
+                //                    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0);
+            }
+            
+            return useIndices;
+        }
+        
+//        void unBindShader(){
+//            end();
+//        }
                 
         //drawing methods        
         void draw( VBO& geometry, GLenum renderType = GL_TRIANGLES );
@@ -87,7 +147,7 @@ namespace ofxScene{
         void setUniform( string name, ofTexture* _tex, bool linkTexture = TRUE );
         void setUniform( string name, ofTexture& _tex );
         void setUniform( string name, ofImage& _img ){ setUniform( name, _img.getTextureReference() );}
-        void setUniform( string name, ofFbo& _fbo ){ setUniform( name, _fbo.getTextureReference() );}
+        void setUniform( string name, ofFbo& _fbo ){ setUniform( name, _fbo.getTextureReference( 0 ) );}
         
         void setUniform( string name, vector<float>& _value );
         void setUniform( string name, vector<ofVec2f>& _value );

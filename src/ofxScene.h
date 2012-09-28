@@ -9,6 +9,7 @@
 #include "includes/VBO.h"
 #include "includes/Shader.h"
 #include "includes/Geometry.h"
+#include "includes/Geometries.h"
 #include "includes/Mesh.h"
 #include "includes/Material.h"
 #include "includes/PointLight.h"

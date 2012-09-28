@@ -98,7 +98,7 @@ namespace ofxScene{
             if( useSpecular ){
                 chunck += "        vec3 halfVector = normalize(VP + eye);\n";
                 chunck += "        float nDotHV = max(0.0, dot(normal, halfVector));\n";
-                chunck += "        float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, SHININESS );\n";
+                chunck += "        float pf = (nDotVP == 0.0)? 0. : pow(nDotHV, Shininess );\n";
                 chunck += "        specular += lightColor * pf * attenuation;\n";
             }
             
@@ -128,7 +128,7 @@ namespace ofxScene{
             
             if(useSpecular){
                 chunck += "float nDotHV = max(0.0, dot(normal, normalize(lightDir+eye)));\n\n";
-                chunck += "float pf = (nDotVP == 0.0)? 0. : pow( nDotHV, SHININESS );\n";
+                chunck += "float pf = (nDotVP == 0.0)? 0. : pow( nDotHV, Shininess );\n";
                 chunck += "specular += lightColor * pf;\n";
             }
             chunck += "}\n";
@@ -179,7 +179,7 @@ namespace ofxScene{
             if(useSpecular){
                 chunck += "        vec3 halfVector = normalize(VP + eye);\n";
                 chunck += "        float nDotHV = max(0.0, dot(normal, halfVector));\n";
-                chunck += "        float pf = (nDotVP == 0.0)? 0.0 : pow(nDotHV, SHININESS);\n";
+                chunck += "        float pf = (nDotVP == 0.0)? 0.0 : pow(nDotHV, Shininess);\n";
                 chunck += "        specular += lightColor * pf * attenuation;\n";
             }
             
@@ -212,6 +212,44 @@ namespace ofxScene{
             chunck += "    }\n";
             
             return chunck;
+        }
+        
+        string randomChunck(){
+            string chunck;
+            chunck += "float random(float seed) {\n";
+            chunck += "    return fract(sin(dot(gl_FragCoord.xyz + seed, vec3(12.9898, 78.233, 151.7182))) * 43758.5453 + seed);\n";
+            chunck += "}\n\n";
+            
+            chunck += "float random(int seed) {\n";
+            chunck += "    return random(float( seed ));\n";
+            chunck += "}\n\n";
+            
+            return chunck;
+        }
+        
+        float gauss( float x, float sigma ){
+            return exp( -(x*x)/(2.*sigma*sigma));
+        }
+        
+        vector<ofVec3f> gaussKernel( int sizeX, int sizeY ){
+            vector<ofVec3f> kernel;
+            sizeX /= 2;
+            sizeY /= 2;
+            for(float i=-sizeX; i<=sizeX; i++){
+                for(float j=-sizeY;j<=sizeY;j++){
+                    kernel.push_back( ofVec3f( i, j, gauss(i,float(sizeX)) * gauss(j,float(sizeY))));
+                }
+            }
+            
+            float sum = 0.;
+            for(int i=0; i<kernel.size(); i++){
+                sum += kernel[i].z;
+            }
+            for(int i=0; i<kernel.size(); i++){
+                kernel[i].z /= sum;
+            }
+            
+            return kernel;
         }
         
         
@@ -256,15 +294,15 @@ namespace ofxScene{
             
             //fragment shader
             frag += "//uniforms\n";
-            frag += "uniform float ALPHA;\n";
-            frag += "uniform vec3 DIFFUSE;\n\n";
+            frag += "uniform float Alpha;\n";
+            frag += "uniform vec3 Diffuse;\n\n";
             if(texture){
                 frag += "uniform sampler2DRect map;\n";
                 frag += "varying vec2 vUv;\n\n";
             }
             
             frag += "void main(){\n";
-            frag += "    gl_FragColor = vec4( DIFFUSE, ALPHA );\n";
+            frag += "    gl_FragColor = vec4( Diffuse, Alpha );\n";
             if(texture) frag += "gl_FragColor *= texture2DRect( map, vUv);\n";
             frag += "}";
             
@@ -274,8 +312,8 @@ namespace ofxScene{
             
             //set uniforms if it compiled
             if( isCompiled ){
-                setUniform("DIFFUSE", diffuse );
-                setUniform("ALPHA", alpha );
+                setUniform("Diffuse", diffuse );
+                setUniform("Alpha", alpha );
                 if(texture){
                     setUniform("mapDim", texture->getWidth(), texture->getHeight() );
                     setUniform("map", *texture );
@@ -541,11 +579,11 @@ namespace ofxScene{
           frag += "uniform int NUM_SPOT_LIGHTS;\n";
           
           frag += "uniform mat4 viewMatrix;\n";
-          frag += "uniform vec3 DIFFUSE;\n";
-          frag += "uniform vec3 SPECULAR;\n";
-          frag += "uniform vec3 AMBIENT;\n";
-          frag += "uniform float ALPHA;\n";
-          frag += "uniform float SHININESS;\n";
+          frag += "uniform vec3 Diffuse;\n";
+          frag += "uniform vec3 Specular;\n";
+          frag += "uniform vec3 Ambient;\n";
+          frag += "uniform float Alpha;\n";
+          frag += "uniform float Shininess;\n";
           
           frag += "//varying\n";
           frag += "varying vec3 vNorm;\n";
@@ -564,19 +602,23 @@ namespace ofxScene{
           frag += "void main(){\n";
           frag += "    vec3 diffuse = vec3(0.);\n";
           frag += "    vec3 specular = vec3(0.);\n";
-          frag += "    vec3 ambient = AMBIENT;\n";
+          frag += "    vec3 ambient = vec3(1.);\n";
           frag += "    vec3 normal = normalize( vNorm );\n";
           
           frag += lightsChunck();
           
           if(texture){
-              frag += "    diffuse *= texture2DRect( map, vUv ).xyz * DIFFUSE;\n";
+              frag += "    vec3 texColor = texture2DRect( map, vUv ).xyz;\n";
+              frag += "    diffuse *= texColor * Diffuse;\n";
+              frag += "    ambient *= texColor * Ambient;\n";
           }
           else{
-              frag += "    diffuse *= DIFFUSE;\n";
+              frag += "    diffuse *= Diffuse;\n";
+              frag += "    ambient *= Ambient;\n";
           }
           
-          frag += "    gl_FragColor = vec4( diffuse + specular * SPECULAR + ambient, 1.);\n";
+          
+          frag += "    gl_FragColor = vec4( diffuse + specular * Specular + ambient, 1.);\n";
           
           
           frag += "}\n";
@@ -586,11 +628,11 @@ namespace ofxScene{
           
           //set uniforms if it compiled
           if( isCompiled ){
-              setUniform( "DIFFUSE", diffuse);
-              setUniform( "SPECULAR", specular);
-              setUniform( "AMBIENT", ambient);
-              setUniform( "ALPHA", 1.f );
-              setUniform( "SHININESS", shininess );
+              setUniform( "Diffuse", diffuse);
+              setUniform( "Specular", specular);
+              setUniform( "Ambient", ambient);
+              setUniform( "Alpha", 1.f );
+              setUniform( "Shininess", shininess );
               
               if(texture){
                   setUniform( "mapDim", texture->getWidth(), texture->getHeight() );
@@ -675,11 +717,11 @@ namespace ofxScene{
           frag += "uniform int NUM_SPOT_LIGHTS;\n";
           
           frag += "uniform mat4 viewMatrix;\n";
-          frag += "uniform vec3 DIFFUSE;\n";
-          frag += "uniform vec3 SPECULAR;\n";
-          frag += "uniform vec3 AMBIENT;\n";
-          frag += "uniform float ALPHA;\n";
-          frag += "uniform float SHININESS;\n";
+          frag += "uniform vec3 Diffuse;\n";
+          frag += "uniform vec3 Specular;\n";
+          frag += "uniform vec3 Ambient;\n";
+          frag += "uniform float Alpha;\n";
+          frag += "uniform float Shininess;\n";
           
           frag += "//varying\n";
           frag += "varying vec3 vNorm;\n";
@@ -698,16 +740,19 @@ namespace ofxScene{
           frag += "void main(){\n";
           
           frag += "    vec3 diffuse = vec3(0.);\n";
-          frag += "    vec3 ambient = AMBIENT;\n";
+          frag += "    vec3 ambient = vec3(1.);\n";
           frag += "    vec3 normal = normalize( vNorm );\n";
           
           frag += lightsChunck(false);
           
           if(texture){
-              frag += "    diffuse *= texture2DRect( map, vUv ).xyz * DIFFUSE;\n";
+              frag += "    vec3 texColor = texture2DRect( map, vUv ).xyz;\n";
+              frag += "    diffuse *= texColor * Diffuse;\n";
+              frag += "    ambient *= texColor * Ambient;\n";
           }
           else{
-              frag += "    diffuse *= DIFFUSE;\n";
+              frag += "    diffuse *= Diffuse;\n";
+              frag += "    ambient *= Ambient;\n";
           }
           
           frag += "    gl_FragColor = vec4( diffuse + ambient, 1.);\n";
@@ -720,9 +765,9 @@ namespace ofxScene{
           
           //set uniforms if it compiled
           if( isCompiled ){
-              setUniform( "DIFFUSE", diffuse);
-              setUniform( "AMBIENT", ambient);
-              setUniform( "ALPHA", 1.f );
+              setUniform( "Diffuse", diffuse);
+              setUniform( "Ambient", ambient);
+              setUniform( "Alpha", 1.f );
               
               if(texture){
                   setUniform( "mapDim", texture->getWidth(), texture->getHeight() );

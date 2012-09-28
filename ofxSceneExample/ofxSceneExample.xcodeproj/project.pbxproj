@@ -73,6 +73,7 @@
 /* Begin PBXFileReference section */
 		5007C1B416018C860010AE48 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		50276FDA1603C7E1007232DF /* SpotLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpotLight.h; sourceTree = "<group>"; };
+		506512BC16150BD000D9E5F9 /* Geometries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Geometries.h; sourceTree = "<group>"; };
 		50B469AB15F6633100085728 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = bin/data/shaders; sourceTree = "<group>"; };
 		50E8D2FA160129B80072E1D4 /* ofxScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxScene.h; sourceTree = "<group>"; };
 		50E8D2FE16012A030072E1D4 /* DirectionalLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectionalLight.h; sourceTree = "<group>"; };
@@ -234,6 +235,7 @@
 				50E8D30B16012A030072E1D4 /* VBO.cpp */,
 				50E8D30C16012A030072E1D4 /* VBO.h */,
 				50E8D30E16012A030072E1D4 /* VertexAttribute.h */,
+				506512BC16150BD000D9E5F9 /* Geometries.h */,
 			);
 			path = includes;
 			sourceTree = "<group>";

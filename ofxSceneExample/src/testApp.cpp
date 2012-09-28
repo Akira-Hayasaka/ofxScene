@@ -1,9 +1,11 @@
 #include "testApp.h"
 
 
+vector <ofVec3f> debugVerts;
+
 //--------------------------------------------------------------
 void testApp::setup(){
-    
+    ofSetVerticalSync(true);
     globeImage.loadImage("earth_bw.png");
     oleImage.loadImage("ole.jpg");
     
@@ -38,13 +40,13 @@ void testApp::setup(){
     spotLightMesh.position = spotLight.getPosition();
     spotLightMesh.wireframe = true;
     spotLightMesh.doubleSided = true;
-    spotLightMesh.shader->setUniform( "DIFFUSE", &spotLightColor );//link "DIFFUSE" uniform to spotLightColor. it will automatically update everyframe
+    spotLightMesh.shader->setUniform( "Diffuse", &spotLightColor );//link "Diffuse" uniform to spotLightColor. it will automatically update everyframe
     scene.add( spotLightMesh );
     
 //cube mesh
     cube.init(new ofxScene::CubeGeometry(60,60,60),
               new ofxScene::LambertMaterial(ofVec3f(1),                         //diffuse
-                                            ofVec3f(0),                         //ambient
+                                            ofVec3f(.25,.25,0),                   //ambient
                                             1.,                                 //alpha
                                             &oleImage.getTextureReference()) ); //texture
     cube.position.set(150,150,0);
@@ -53,8 +55,8 @@ void testApp::setup(){
 //sphere mesh
     ofxScene::Mesh* sphere = new ofxScene::Mesh(new ofxScene::SphereGeometry( 50, 20, 10 ),
                                                 new ofxScene::PhongMaterial(ofVec3f(1),                             //diffuse
-                                                                            ofVec3f(1.1),                            //specular
-                                                                            ofVec3f(0),                             //ambient
+                                                                            ofVec3f(1.1),                           //specular
+                                                                            ofVec3f(.1),                            //ambient
                                                                             1,                                      //alpha
                                                                             128,                                    //shineness
                                                                             &globeImage.getTextureReference() ) );  //texture map
@@ -132,12 +134,18 @@ void testApp::setup(){
     waltHead2.wireframe = true;
     scene.add( waltHead2 );
     
-//ground mesh
+//ground plane
     plane.init(new ofxScene::PlaneGeometry(600,600,20,20),
                dynamicMesh.shader);
     plane.position.set(0.,-250, 0);
     plane.rotate(-90, 1, 0, 0);
     scene.add( plane );
+    plane.doubleSided = true;
+    plane.geometry->calcTangents();
+
+    //a simple debugging mesh that displays a mesh's normal, tangent, binormal
+    normalDisplayMesh.setup( plane );
+    scene.add( normalDisplayMesh );
 }
 
 //--------------------------------------------------------------
@@ -165,7 +173,6 @@ void testApp::update(){
     
     //mesh orientations
     cube.rotate( sin(elapsedTime*.3)*180., cos(elapsedTime*.3)*180., 0 );
-//    sphere.rotate( elapsedTime*5, 0,1,0 );
     
     waltHead.rotate(mouseX, 0, 1, 0);           //degrees, axisXYZ
     waltHead1.rotate(mouseX + mouseY, 0, 0, 1); //degrees, axisXYZ
@@ -192,11 +199,14 @@ void testApp::update(){
     ofxScene::Geometry* g = plane.geometry;
     float nval = elapsedTime ;
     for(int i=0; i<g->vertices.size(); i++){
-//        g->vertices[i].z = ofNoise( g->vertices[i].x*.01,g->vertices[i].y*.01, nval ) * 50.;
         g->vertices[i].z = sin(g->vertices[i].x*.01+nval) * cos(g->vertices[i].y*.01+nval) * 50.;
     }
     g->calcVertexNotmals();
+    plane.geometry->calcTangents();
     g->update();
+    
+    //update mesh that displays a mesh's normal, tangent, binormal
+    normalDisplayMesh.update();
 }
 
 //--------------------------------------------------------------

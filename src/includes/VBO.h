@@ -25,9 +25,7 @@ namespace ofxScene{
         VertexAttributeBase* getAttr( string name ){
             return ( attributes.count( name ) )? attributes[name] : NULL;
         }
-        //        void updateAttribute( string name, vector<int> data ){
-        //
-        //        }
+        
         
         void addIndices( vector <int>& _indices ){
             attr1i["indices"].init( _indices, &_indices[0], 1, GL_INT, GL_ELEMENT_ARRAY_BUFFER );
@@ -54,7 +52,15 @@ namespace ofxScene{
             attributes[name] = &attr4f[name];
         }
         
+        void printAttributes(){
+            for(attr_it = attributes.begin(); attr_it != attributes.end(); attr_it++){
+                cout << attr_it->first << endl;
+            }
+        }
+        
         //attributes
+        
+        map<string, ofxScene::VertexAttributeBase* >::iterator attr_it;
         map<string, ofxScene::VertexAttributeBase* > attributes;
         
         map<string, ofxScene::VertexAttribute<int>      > attr1i;

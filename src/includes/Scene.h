@@ -39,6 +39,9 @@ namespace ofxScene{
         
         void add( Mesh& mesh ){
             meshes.push_back( &mesh );
+            
+            if( materials.count( mesh.shader ) == 0 )   materials[ mesh.shader ] = 0;
+            if( geometries.count( mesh.geometry ) == 0 )   geometries[ mesh.geometry ] = 0;
         }
         
         Mesh* add( Mesh* mesh ){
@@ -79,7 +82,6 @@ namespace ofxScene{
                 pointLightsTransformed[i] = *pointLights[i];
                 pointLightsTransformed[i].setPosition( pointLightsTransformed[i].getPosition() * modelView );
             }
-            
         }
         
         void transformDirectionalLights( ofMatrix4x4& modelView  ){
@@ -89,7 +91,6 @@ namespace ofxScene{
                 directionalLightsTransformed[i] =  *directionalLights[i];
                 directionalLightsTransformed[i].setDirection( rotQuat * directionalLightsTransformed[i].getDirection() );
             }
-            
         }
         
         
@@ -101,7 +102,6 @@ namespace ofxScene{
                 spotLightsTransformed[i].setPosition( spotLightsTransformed[i].getPosition() * modelView );
                 spotLightsTransformed[i].setDirection( rotQuat * spotLightsTransformed[i].getDirection() );
             }
-            
         }
         
         
@@ -120,29 +120,76 @@ namespace ofxScene{
             transformPointLights( modelView );
             transformDirectionalLights( modelView );
             transformSpotLights( modelView );
-
-            for(int i=0; i<meshes.size(); i++){
+            
+            map< Shader*, int >::iterator mat_it;
+            for ( mat_it = materials.begin() ; mat_it != materials.end(); mat_it++ ){
                 if(pointLights.size()){
-                    meshes[i]->shader->setUniform( "NUM_POINT_LIGHTS", int( pointLights.size() ) );
-                    meshes[i]->shader->setUniform( "POINT_LIGHTS[0]", pointLightsTransformed );
+                    mat_it->first->setUniform( "NUM_POINT_LIGHTS", int( pointLights.size() ) );
+                    mat_it->first->setUniform( "POINT_LIGHTS[0]", pointLightsTransformed );
                 }
                 if(directionalLights.size()){
-                    meshes[i]->shader->setUniform( "NUM_DIRECTIONAL_LIGHTS", int( directionalLights.size() ) );
-                    meshes[i]->shader->setUniform( "DIRECTIONAL_LIGHTS[0]", directionalLightsTransformed );
+                    mat_it->first->setUniform( "NUM_DIRECTIONAL_LIGHTS", int( directionalLights.size() ) );
+                    mat_it->first->setUniform( "DIRECTIONAL_LIGHTS[0]", directionalLightsTransformed );
                 }
                 if(spotLights.size()){
-                    meshes[i]->shader->setUniform( "NUM_SPOT_LIGHTS", int( spotLights.size() ) );
-                    meshes[i]->shader->setUniform( "SPOT_LIGHTS[0]", spotLightsTransformed );
+                    mat_it->first->setUniform( "NUM_SPOT_LIGHTS", int( spotLights.size() ) );
+                    mat_it->first->setUniform( "SPOT_LIGHTS[0]", spotLightsTransformed );
+                }
+            }
+
+            for(int i=0; i<meshes.size(); i++){
+                
+                if(currentMaterial != meshes[i]->shader ){
+                    currentMaterial = meshes[i]->shader;
+                    currentGeometry = NULL;
                 }
                 
-                meshes[i]->draw( modelView, projection );
+                if(currentGeometry != meshes[i]->geometry ){
+                    meshes[i]->shader->bindGeometry( meshes[i]->geometry );
+                    currentGeometry = meshes[i]->geometry;
+                }
+                
+                if( currentGeometry != NULL && currentMaterial != NULL && currentMaterial->getProgram() != 0 ){
+                    
+                    //transformation matrices
+                    meshes[i]->updateMatrices(false);
+                    ofMatrix4x4 modelViewMatrix = meshes[i]->worldMatrix * modelView;
+                    meshes[i]->shader->setUniform( "viewMatrix", modelView );
+                    meshes[i]->shader->setUniform( "modelViewMatrix", modelViewMatrix );
+                    meshes[i]->shader->setUniform( "projectionMatrix", projection );
+                    meshes[i]->shader->setUniform( "normalMatrix", *meshes[i]->setNormalMatrix( modelViewMatrix ) );
+                    
+                    //culling and depth testing
+                    (meshes[i]->depthTest)? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+                    (meshes[i]->doubleSided)? glDisable(GL_CULL_FACE) : glEnable(GL_CULL_FACE);
+                    if(meshes[i]->cull != GL_BACK) glCullFace( meshes[i]->cull );
+                    if(meshes[i]->wireframe)   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE );
+                    
+                    //drawing
+                    VertexAttributeBase* indexAttr = meshes[i]->geometry->getAttr("indices");
+                    if( indexAttr ){
+                        glDrawElements( meshes[i]->renderType, indexAttr->count, GL_UNSIGNED_INT, 0);
+                    }
+                    else{
+                        VertexAttributeBase* attr = meshes[i]->geometry->attributes.begin()->second;
+                        glDrawArrays( meshes[i]->renderType, 0, (attr)? attr->count : 0 );
+                    }
+                    
+                    //revert to defualt render settings
+                    if(meshes[i]->wireframe)   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
+                    if(meshes[i]->cull != GL_BACK) glCullFace( GL_BACK );
+                }
+                
+                if(fbo){
+                    fbo->end();
+                    fbo->getTextureReference();// with multisampling we need to update() the texture which gets called here privately
+                }
+                
+                camera.end();
             }
             
-            if(fbo){
-                fbo->end();
-            }
-            
-            camera.end();
+            currentGeometry = NULL;
+            currentMaterial = NULL;
         }
         
         void setAutoClear( bool _color, bool _depth ){
@@ -164,12 +211,19 @@ namespace ofxScene{
         
         ofMatrix4x4 projection, modelView;
         
-        bool autoClearColor;
-        bool autoClearDepth;
+        bool autoClearColor, autoClearDepth;//only useful when drawing to a FBO
         
         vector <Mesh*> allocatedMeshes;
+        map <Shader*, int> materials;
+        map <Geometry*, int> geometries;
+        
+        Geometry* currentGeometry;
+        Shader* currentMaterial;
+        
         vector<PointLight*> allocatedPointLights;
         vector<DirectionalLight*> allocatedDirectionalLights;
         vector<SpotLight*> allocatedSpotLights;
+        
+        
     };
 }

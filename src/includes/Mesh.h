@@ -6,8 +6,8 @@
 #pragma once
 #include "ofMain.h"
 #include "Node3D.h"
-#include "Shader.h"
 #include "Geometry.h"
+#include "Material.h"
 
 namespace ofxScene{
     class Mesh;
@@ -135,8 +135,12 @@ namespace ofxScene{
             position = tempPos;
         }
         
+        void renderSetup(){
+            
+        }
+        
         void draw( ofMatrix4x4 viewMatrix, ofMatrix4x4 projectionMatrix ){
-
+                
             if( geometry != NULL && shader != NULL && shader->getProgram() != 0 ){
                 updateMatrices(false);
                 
@@ -149,20 +153,30 @@ namespace ofxScene{
                 
                 (depthTest)? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
                 (doubleSided)? glDisable(GL_CULL_FACE) : glEnable(GL_CULL_FACE);
-                glCullFace( cull );
+                if(cull != GL_BACK) glCullFace( cull );
+                if(wireframe)   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE );
                 
-                if(wireframe){
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE );
+                shader->bindGeometry( geometry );
+                
+                if(geometry->getAttr("indices") == NULL ){
+                    VertexAttributeBase* attr = geometry->attributes.begin()->second;
+                    glDrawArrays( renderType, 0, (attr)? attr->count : 0 );
                 }
-                
+                else{
+                    VertexAttributeBase* attr = geometry->getAttr("indices");
+                    
+                    //bind and draw the indices
+                    attr->bind();
+                    glIndexPointer( GL_UNSIGNED_INT, 0, 0);
+                    glDrawElements( renderType, attr->count, GL_UNSIGNED_INT, 0);
+                    
+                    //unbind
+                    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0);
+                }
                 shader->draw( *geometry, renderType );
-                if(wireframe){
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
-                }
                 
-                if(cull != GL_BACK){
-                    glCullFace( GL_BACK );
-                }
+                if(wireframe)   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
+                if(cull != GL_BACK) glCullFace( GL_BACK );
             }
         }
         
@@ -180,8 +194,108 @@ namespace ofxScene{
     public:
         
         int lastFrame;
-        bool wireframe, depthTest, doubleSided;
+        bool wireframe, depthTest, doubleSided;//TODO:: move this stuff to the material
         GLenum cull, renderType;
         int useCount;
+    };
+    
+    class NormalDisplayMesh : public Mesh{
+    public:
+        NormalDisplayMesh(){
+            targetMesh = NULL;
+            useTangents = false;
+        };
+        NormalDisplayMesh( Mesh& _targetMesh ){
+            setup( _targetMesh );
+        };
+        ~NormalDisplayMesh(){};
+        
+        void setup( Mesh& _targetMesh ){
+            targetMesh = &_targetMesh;
+            
+            init( new Geometry(), new NormalMaterial() );
+            
+            if( targetMesh->geometry->tangents.size() > 0 ){
+                useTangents = true;
+                geometry->vertices.resize( targetMesh->geometry->vertices.size() * 4 );
+                geometry->normals.resize( targetMesh->geometry->vertices.size() * 4 );
+                geometry->indices.resize( targetMesh->geometry->vertices.size()*6 );
+                for(int i=0; i<targetMesh->geometry->vertices.size(); i++){
+                    geometry->vertices[i*4  ] = targetMesh->geometry->vertices[i];
+                    geometry->vertices[i*4+1] = targetMesh->geometry->vertices[i] + targetMesh->geometry->normals[i] * 10;
+                    geometry->vertices[i*4+2] = targetMesh->geometry->vertices[i] + targetMesh->geometry->tangents[i] * 10;
+                    geometry->vertices[i*4+3] = targetMesh->geometry->vertices[i] + targetMesh->geometry->binormals[i] * 10;
+                    
+                    geometry->normals[i*4  ] = targetMesh->geometry->normals[i];
+                    geometry->normals[i*4+1] = targetMesh->geometry->normals[i];
+                    geometry->normals[i*4+2] = targetMesh->geometry->tangents[i];
+                    geometry->normals[i*4+3] = targetMesh->geometry->binormals[i];
+                    
+                    geometry->indices[i*6  ] = i*4;
+                    geometry->indices[i*6+1] = i*4+1;
+                    geometry->indices[i*6+2] = i*4;
+                    geometry->indices[i*6+3] = i*4+2;
+                    geometry->indices[i*6+4] = i*4;
+                    geometry->indices[i*6+5] = i*4+3;
+                }
+            }
+            else {
+               geometry->vertices.resize( targetMesh->geometry->vertices.size() * 2 );
+               geometry->normals.resize( targetMesh->geometry->vertices.size() * 2 );
+               geometry->indices.resize( targetMesh->geometry->vertices.size()*2 );
+               for(int i=0; i<targetMesh->geometry->vertices.size(); i++){
+                   geometry->vertices[i*2  ] = targetMesh->geometry->vertices[i];
+                   geometry->vertices[i*2+1] = targetMesh->geometry->vertices[i] + targetMesh->geometry->normals[i] * 10;
+                   
+                   geometry->normals[i*2  ] = targetMesh->geometry->normals[i];
+                   geometry->normals[i*2+1] = targetMesh->geometry->normals[i];
+                   
+                   geometry->indices[i*2  ] = i*2;
+                   geometry->indices[i*2+1] = i*2+1;
+               }
+           }
+               
+            geometry->addIndices( geometry->indices );
+            geometry->addAttribute( "position", geometry->vertices );
+            geometry->addAttribute( "normal", geometry->normals );
+            renderType = GL_LINES;
+        }
+        
+        void update(){
+            if(targetMesh != NULL){
+                if(useTangents){
+                    for(int i=0; i<targetMesh->geometry->vertices.size(); i++){
+                        geometry->vertices[i*4  ] = targetMesh->geometry->vertices[i];
+                        geometry->vertices[i*4+1] = targetMesh->geometry->vertices[i] + targetMesh->geometry->normals[i] * 10;
+                        geometry->vertices[i*4+2] = targetMesh->geometry->vertices[i] + targetMesh->geometry->tangents[i] * 10;
+                        geometry->vertices[i*4+3] = targetMesh->geometry->vertices[i] + targetMesh->geometry->binormals[i] * 10;
+                        
+                        geometry->normals[i*4  ] = targetMesh->geometry->normals[i];
+                        geometry->normals[i*4+1] = targetMesh->geometry->normals[i];
+                        geometry->normals[i*4+2] = targetMesh->geometry->tangents[i];
+                        geometry->normals[i*4+3] = targetMesh->geometry->binormals[i];
+                    }
+                }
+                else{
+                    for(int i=0; i<targetMesh->geometry->vertices.size(); i++){
+                        geometry->vertices[i*2  ] = targetMesh->geometry->vertices[i];
+                        geometry->vertices[i*2+1] = targetMesh->geometry->vertices[i] + targetMesh->geometry->normals[i] * 10;
+                        
+                        geometry->normals[i*2  ] = targetMesh->geometry->normals[i];
+                        geometry->normals[i*2+1] = targetMesh->geometry->normals[i];
+                    }
+                }
+                
+                position = targetMesh->position;
+                orientation = targetMesh->orientation;
+                scale = targetMesh->scale;
+                
+                geometry->update();
+   
+            }
+        }
+        
+        Mesh* targetMesh;
+        bool useTangents;
     };
 }

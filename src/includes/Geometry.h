@@ -8,7 +8,7 @@
 #include "VBO.h"
 
 namespace ofxScene{
-
+    
     class Face3{
     public:
         Face3(int v1=0, int v2=0, int v3=0){ indices[0]=v1; indices[1]=v2; indices[2]=v3; }
@@ -21,12 +21,10 @@ namespace ofxScene{
         ofVec3f centroid, normal;
         
     };
-        
+    
     class Geometry : public VBO {
     public:
         Geometry(){
-            bUpdateFaceIndices = false;
-            bUpdateVertexData = true;
             useCount = 0;
         };
         ~Geometry(){
@@ -36,7 +34,7 @@ namespace ofxScene{
             for ( vbo_it = attributes.begin() ; vbo_it != attributes.end(); vbo_it++ ){
                 glDeleteBuffers( 1, &vbo_it->second->bufferId );
             }
-
+            
         };
         
         void update(int frame = ofGetFrameNum()){
@@ -56,7 +54,7 @@ namespace ofxScene{
             }
         }
         
-//TODO::   void bind(Shader* shader); it'd be nice to bind the geometry and shader once, "instancing" an array of nodes
+        //TODO::   void bind(Shader* shader); it'd be nice to bind the geometry and shader once, "instancing" an array of nodes
         
         
         //faces
@@ -65,9 +63,8 @@ namespace ofxScene{
             if( v3 > -1 ){
                 faces.push_back( Face3( v0, v2, v3 ) );
             }
-            bUpdateFaceIndices = true;
         }
-//        void addFaceNSided( vector<int>& fIndices );
+        //        void addFaceNSided( vector<int>& fIndices );
         
         void updateFaceIndices(){
             indices.resize( faces.size() * 3 );
@@ -111,18 +108,81 @@ namespace ofxScene{
             }
         }
         
-        void setDefualtBuffers(){
-            
-            if(getAttr("position") == NULL && vertices.size() ){
-                addAttribute("position", vertices );
+        void calcTangents(){
+//            Lengyel, Eric. “Computing Tangent Space Basis Vectors for an Arbitrary Mesh”.
+//            Terathon Software 3D Graphics Library, 2001. http://www.terathon.com/code/tangent.html
+            if(texCoords.size() != vertices.size() ){
+                cout << "we need texCoords to compute tangents" << endl;
+                return;
             }
             
-            if(getAttr("normal") == NULL && normals.size() ){
-                addAttribute("normal", normals );
+            vector<ofVec3f> tan1( vertices.size(), ofVec3f(0) );
+            vector<ofVec3f> tan2( vertices.size(), ofVec3f(0) );
+            ofVec3f sdir, tdir;
+            int i1, i2, i3;
+            float x1, x2, y1, y2, z1, z2, s1, s2, t1, t2, r;
+            
+            for(int f=0; f<faces.size(); f++){
+                i1 = faces[f][0];
+                i2 = faces[f][1];
+                i3 = faces[f][2];
+
+                ofVec3f& v1 = vertices[i1];
+                ofVec3f& v2 = vertices[i2];
+                ofVec3f& v3 = vertices[i3];
+
+                ofVec2f& w1 = texCoords[i1];
+                ofVec2f& w2 = texCoords[i2];
+                ofVec2f& w3 = texCoords[i3];
+                
+
+                x1 = v2.x - v1.x;
+                x2 = v3.x - v1.x;
+                y1 = v2.y - v1.y;
+                y2 = v3.y - v1.y;
+                z1 = v2.z - v1.z;
+                z2 = v3.z - v1.z;
+
+                s1 = w2.x - w1.x;
+                s2 = w3.x - w1.x;
+                t1 = w2.y - w1.y;
+                t2 = w3.y - w1.y;
+                
+                r = 1.0F / (s1 * t2 - s2 * t1);
+                sdir.set((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+                         (t2 * z1 - t1 * z2) * r);
+                tdir.set((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+                         (s1 * z2 - s2 * z1) * r);
+                
+                tan1[i1] += sdir;
+                tan1[i2] += sdir;
+                tan1[i3] += sdir;
+
+                tan2[i1] += tdir;
+                tan2[i2] += tdir;
+                tan2[i3] += tdir;
+            }
+
+            
+            tangents.resize( vertices.size() );
+            binormals.resize( vertices.size() );
+            for (int a=0; a < vertices.size(); a++){
+                ofVec3f& n = normals[a];
+                ofVec3f& t = tan1[a];
+                
+                // Gram-Schmidt orthogonalize
+                tangents[a] = (t - n * n.dot(t)).normalize();
+                
+                // Calculate handedness
+//                binormals[a] = n.crossed(t).normalize();
+                tangents[a].w = ( n.crossed(t).dot( tan2[a] ) < 0.) ? -1.f : 1.f;
+                binormals[a] = n.crossed( tangents[a] );
             }
             
-            if(getAttr("indices") == NULL && indices.size() ){
-                addIndices(indices);
+            if(getAttr( "tangent") == NULL ){
+                addAttribute( "tangent", tangents );
+                
+                cout << "adding tangent attribute" << endl;
             }
         }
         
@@ -138,7 +198,7 @@ namespace ofxScene{
             texCoords.clear();
             faces.clear();
             indices.clear();
-                
+            
             const aiScene* scn = loader.getAssimpScene();
             
             cout << "scn->mNumMeshes: "<<scn->mNumMeshes << endl;
@@ -172,7 +232,7 @@ namespace ofxScene{
             
             addAttribute( "position", vertices );
             addAttribute( "normal", normals );
-//TODO::            addAttribute( "texCoord", texCoords ); 
+            //TODO::            addAttribute( "texCoord", texCoords ); 
             addIndices( indices );
         }
         
@@ -182,384 +242,26 @@ namespace ofxScene{
             texCoords.clear();
             faces.clear();
             indices.clear();
+            tangents.clear();
+            binormals.clear();
         }
         
         //mesh construction
         vector<ofVec3f> vertices;
         vector<ofVec3f> normals;
         vector<ofVec2f> texCoords;
+        vector<ofVec3f> binormals;
+        vector<ofVec4f> tangents;
         vector<Face3> faces;
-        vector<int> indices;
         
-        bool bUpdateFaceIndices;
-        bool bUpdateVertexData;
+        //TODO:: setup faceted rendering...
+        vector<ofVec3f> faceVertices;
+        vector<ofVec3f> faceNormals;
+        vector<ofVec2f> faceTexCoords;
+        vector<int> indices;
         
         int lastFrame;
         
         int useCount;
-    };
-    
-    class PlaneGeometry : public Geometry{
-    public:
-        PlaneGeometry( float width=100, float height=100, int subdX=1, int subdY=1 ){
-            init( width, height, subdX, subdY);
-        }
-        ~PlaneGeometry(){};
-        
-        void init( float width=100, float height=100, int subdX=1, int subdY=1 ){
-            clearData();
-            subdX = max( 1, subdX );
-            subdY = max( 1, subdY );
-            
-            float halfWidth = width/2.f;
-            float halfHeight = height/2.f;
-            
-            //vertices
-            ofVec2f uv;
-            float xStep = 1.f/float( subdX );
-            float yStep = 1.f/float( subdY );
-            vector< vector<int> > vIndices( subdX+1 );
-            for(int x=0; x<=subdX; x++){
-                vIndices[x].resize( subdY+1 );
-                for(int y=0; y<=subdY; y++){
-                    vIndices[x][y] = vertices.size();
-                    uv.set(xStep*float(x), yStep*float(y));
-                    texCoords.push_back( uv );
-                    vertices.push_back( ofVec3f(ofMap(uv.x, 0, 1, -halfWidth, halfWidth),
-                                                ofMap(uv.y, 0, 1, -halfHeight, halfHeight),
-                                                0));
-                    
-                }
-            }
-            
-            //faces
-            for(int x=0;x<subdX;x++){
-                for(int y=0; y<subdY;y++){
-                    addFace(vIndices[x][y], vIndices[x+1][y], vIndices[x+1][y+1], vIndices[x][y+1]);
-//                    addFace(vIndices[x][y], vIndices[x][y+1], vIndices[x+1][y+1], vIndices[x+1][y] );
-                }
-            }
-            
-            //calculate normals
-            calcVertexNotmals();
-            
-            //add indices
-            updateFaceIndices();
-            
-            addAttribute( "position", vertices );
-            addAttribute( "normal", normals );
-            addAttribute( "texCoord", texCoords );
-            addIndices( indices );
-        }
-    };
-    
-    
-    class SphereGeometry : public Geometry{
-    public:
-        
-        SphereGeometry( float radius = 50, int _subdX = 31, int _subdY = 10, bool weldSeam = false ){
-            
-            init( radius, _subdX, _subdY, weldSeam );
-        };
-        ~SphereGeometry(){}
-            
-        void init( float radius = 50, int _subdX = 31, int _subdY = 10, bool weldSeam = false ){
-            clearData();
-            
-            int subdX = max( 3, _subdX );
-            int subdY = max( 1, _subdY );
-            
-            //vertices
-            float u,v, xval, yval;
-            for(int x=0; x<=subdX; x++){
-                xval = float(x)/float(subdX);
-                for(int y=0; y<=subdY; y++){
-                    yval = float(y)/float(subdY);
-                    u = PI * xval * 2.;
-                    v = PI * yval;
-                    vertices.push_back( ofVec3f(radius * cos( u ) * sin( v ),  
-                                                radius * cos( v ),             
-                                                radius * sin( u ) * sin( v )));
-                    normals.push_back( vertices.back().normalized() );
-                    texCoords.push_back( ofVec2f( 1. - xval, yval ) );
-                }
-                if( weldSeam && x == subdX - 1 ){
-                    continue;
-                }
-            }
-            
-            //faces
-            for( int x=0; x<subdX; x++){
-                for(int y=0; y<subdY; y++){
-                    //caps: this isn't perfect. the tex coords get screwed up. will fix it better when I have time...
-                    if( y == 0 ){
-                        addFace( (x+1)*(subdY+1)+y, (x+1)*(subdY+1)+y+1, x*(subdY+1)+y+1 );
-                    }
-                    else if( y == subdY-1){
-                        addFace( x*(subdY+1)+y, (x+1)*(subdY+1)+y, (x+1)*(subdY+1)+y+1 );
-                    }
-                    else{
-                        addFace( x*(subdY+1)+y, (x+1)*(subdY+1)+y, (x+1)*(subdY+1)+y+1, x*(subdY+1)+y+1);
-                    }
-                }
-            }
-            
-            updateFaceIndices();
-            
-            addAttribute( "position", vertices );
-            addAttribute( "normal", normals );
-            addAttribute( "texCoord", texCoords );
-            addIndices( indices );
-        }
-    };
-    
-    class ConeGeometry : public Geometry{
-    public:
-        ConeGeometry( float radius=50, float height=100, int subdivisions=11){
-            init( radius, height, subdivisions);
-        };
-        ~ConeGeometry(){};
-        
-        void init( float radius=50, float height=100, int subdivisions=11){
-            clearData();
-            
-            
-            int subdX = max( 3, subdivisions );
-            
-            //            sides
-            //vertices
-            float u,theta;
-            for(int x=0; x<=subdX; x++){
-                u = float(x)/float(subdX);
-                theta = PI * 2. * u;
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            -height/2.,
-                                            radius * cos(theta)));
-            }
-            vertices.push_back( ofVec3f(0,height/2.,0) );
-            
-            //faces
-            int pointIndex = vertices.size()-1;
-            for( int x=0; x<subdX; x++){
-                addFace(x, x+1, pointIndex );
-            }
-            
-            //            cap
-            //vertices
-            int vCount = vertices.size();
-            for(int x=0; x<=subdX; x++){
-                u = float(x)/float(subdX);
-                theta = PI * 2. * u;
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            -height/2.,
-                                            radius * cos(theta)));
-            }
-            vertices.push_back( ofVec3f(0,-height/2.,0) );
-            
-            //faces
-            int capCenter = vertices.size()-1;
-            for( int x=0; x<subdX; x++){
-                addFace(x + vCount, x+1+vCount, capCenter );
-            }
-            
-            //calculate normals
-            calcVertexNotmals();
-            
-            //add indices
-            updateFaceIndices();
-            
-            addAttribute( "position", vertices );
-            addAttribute( "normal", normals );
-            //TODO::            addAttribute( "texCoord", texCoords );
-            addIndices( indices );
-        }
-    };
-    
-    class CylinderGeometry : public Geometry{
-    public:
-        CylinderGeometry( float radius=50, float height=100, int subdivisions=11){
-            init( radius, height, subdivisions);
-        };
-        ~CylinderGeometry(){};
-        
-        void init( float radius=50, float height=100, int subdivisions=11){
-            clearData();
-            
-            
-            int subdX = max( 3, subdivisions );
-            
-            //            sides
-            //vertices
-            float u,theta;
-            for(int x=0; x<=subdX; x++){
-                u = float(x)/float(subdX);
-                theta = PI * 2. * u;
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            -height/2.,
-                                            radius * cos(theta)));
-                
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            height/2.,
-                                            radius * cos(theta)));
-            }
-            
-            //faces
-            int pointIndex = vertices.size()-1;
-            for( int x=0; x<subdX*2; x+=2){
-                addFace(x, x+1, x+3, x+2 );
-            }
-            
-            //bottom cap
-            //vertices
-            int vCount = vertices.size();
-            for(int x=0; x<=subdX; x++){
-                u = float(x)/float(subdX);
-                theta = PI * 2. * u;
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            -height/2.,
-                                            radius * cos(theta)));
-            }
-            vertices.push_back( ofVec3f(0,-height/2.,0) );
-            
-            //faces
-            int capCenter = vertices.size()-1;
-            for( int x=0; x<subdX; x++){
-                addFace(x + vCount, x+1+vCount, capCenter );
-            }
-            
-            //top cap
-            //vertices
-            vCount = vertices.size();
-            for(int x=0; x<=subdX; x++){
-                u = float(x)/float(subdX);
-                theta = PI * 2. * u;
-                vertices.push_back( ofVec3f(radius * sin( theta ),
-                                            height/2.,
-                                            radius * cos(theta)));
-            }
-            vertices.push_back( ofVec3f(0,height/2.,0) );
-            
-            //faces
-            capCenter = vertices.size()-1;
-            for( int x=0; x<subdX; x++){
-                addFace(x + vCount, capCenter, x+1+vCount );
-            }
-            
-            //calculate normals
-            calcVertexNotmals();
-            
-            //add indices
-            updateFaceIndices();
-            
-            addAttribute( "position", vertices );
-            addAttribute( "normal", normals );
-            //TODO::            addAttribute( "texCoord", texCoords );
-            addIndices( indices );
-        }
-    };
-    
-    
-    class CubeGeometry : public Geometry{
-    public:
-        
-        CubeGeometry(float width = 1.f, float height = 1.f, float depth = 1.f){
-            
-            init( width, height, depth);
-        };
-        ~CubeGeometry(){
-        }
-        
-        void init( float width = 1.f, float height = 1.f, float depth = 1.f ){
-            clearData();
-            
-            vector<ofVec3f> corners(8);
-            
-            width *= .5;
-            height *= .5;
-            depth *= .5;
-            
-            corners[0].set( -width, -height, depth );
-            corners[1].set( width, -height, depth );
-            corners[2].set( width, height, depth );
-            corners[3].set( -width, height, depth );
-            
-            corners[4].set( -width, -height, -depth );
-            corners[5].set( width, -height, -depth );
-            corners[6].set( width, height, -depth );
-            corners[7].set( -width, height, -depth );
-            
-            //front and back
-            vertices.push_back( corners[0] );
-            vertices.push_back( corners[1] );
-            vertices.push_back( corners[2] );
-            vertices.push_back( corners[3] );
-            vertices.push_back( corners[4] );
-            vertices.push_back( corners[5] );
-            vertices.push_back( corners[6] );
-            vertices.push_back( corners[7] );
-            texCoords.push_back( ofVec2f( 0, 0 ));
-            texCoords.push_back( ofVec2f( 0, 1 ));
-            texCoords.push_back( ofVec2f( 1, 1 ));
-            texCoords.push_back( ofVec2f( 1, 0 ));
-            texCoords.push_back( ofVec2f( 0, 0 ));
-            texCoords.push_back( ofVec2f( 0, 1 ));
-            texCoords.push_back( ofVec2f( 1, 1 ));
-            texCoords.push_back( ofVec2f( 1, 0 ));
-            addFace(0,1,2,3);//front
-            addFace(4,7,6,5);//back
-            
-            //left and right
-            vertices.push_back( corners[0] );
-            vertices.push_back( corners[1] );
-            vertices.push_back( corners[2] );
-            vertices.push_back( corners[3] );
-            vertices.push_back( corners[4] );
-            vertices.push_back( corners[5] );
-            vertices.push_back( corners[6] );
-            vertices.push_back( corners[7] );
-            texCoords.push_back( ofVec2f(0,0));
-            texCoords.push_back( ofVec2f( 0,0 ));
-            texCoords.push_back( ofVec2f( 1,0 ));
-            texCoords.push_back( ofVec2f(0,1));
-            texCoords.push_back( ofVec2f(1,0 ));
-            texCoords.push_back( ofVec2f( 0,1 ));
-            texCoords.push_back( ofVec2f( 1,1 ));
-            texCoords.push_back( ofVec2f(1,1));
-
-            addFace(8,11,15,12);
-            addFace(9,13,14,10);
-            
-            //top and bottom
-            vertices.push_back( corners[0] );
-            vertices.push_back( corners[1] );
-            vertices.push_back( corners[2] );
-            vertices.push_back( corners[3] );
-            vertices.push_back( corners[4] );
-            vertices.push_back( corners[5] );
-            vertices.push_back( corners[6] );
-            vertices.push_back( corners[7] );
-            texCoords.push_back( ofVec2f(0,0));
-            texCoords.push_back( ofVec2f(1,0));
-            texCoords.push_back( ofVec2f( 0,0 ));
-            texCoords.push_back( ofVec2f( 1,0 ));
-            texCoords.push_back( ofVec2f(0,1));
-            texCoords.push_back( ofVec2f(1,1));
-            texCoords.push_back( ofVec2f( 0,1 ));
-            texCoords.push_back( ofVec2f( 1,1 ));
-
-            addFace(16,20,21,17);
-            addFace(18,22,23,19);
-            
-            //calculate normals
-            calcVertexNotmals();
-            
-            //add indices
-            updateFaceIndices();
-            
-            addAttribute( "position", vertices );
-            addAttribute( "normal", normals );
-            addAttribute( "texCoord", texCoords );
-            addIndices( indices );
-        }
     };
 }

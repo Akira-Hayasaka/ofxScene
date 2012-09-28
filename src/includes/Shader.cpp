@@ -89,36 +89,10 @@ void Shader::cacheUniforms(){
 }
 
 void Shader::draw( VBO& geometry, GLenum renderType ){
-    begin();
-    
-    updateDynamicUniforms();
-    
-    //bind textures
-    for (u_it = uniforms.begin(); u_it != uniforms.end(); u_it++) {
-        if(u_it->second.type == GL_SAMPLER_2D ){
-            setUniformTexture(u_it->first.c_str(), *u_it->second.tex, u_it->second.texloc );
-        }
-    }
-    map< string, ShaderUniform > uniforms;
+
+    bindGeometry( &geometry );
     
     VertexAttributeBase* attr = NULL;
-
-    //bind all the applicable vertex buffers
-    for(a_it = attributes.begin(); a_it != attributes.end(); a_it++){
-        attr = geometry.getAttr( a_it->first );
-        if(attr != NULL ){
-            attr->bind();
-            
-            glEnableVertexAttribArray( a_it->second );
-            glVertexAttribPointer(a_it->second,
-                                  attr->size,
-                                  attr->type,
-                                  GL_FALSE,
-                                  attr->stride,
-                                  (GLvoid *)0);
-        }
-    }
-    
     if(geometry.getAttr("indices") == NULL ){
         glDrawArrays( renderType, 0, (attr)? attr->count : 0 );
     }
@@ -136,10 +110,10 @@ void Shader::draw( VBO& geometry, GLenum renderType ){
     
     //unbind all the buffers and attributes
     attr = NULL;
-    for(a_it = attributes.begin(); a_it != attributes.end(); a_it++){
-        glDisableVertexAttribArray( a_it->second );
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-    }
+//    for(a_it = attributes.begin(); a_it != attributes.end(); a_it++){
+//        glDisableVertexAttribArray( a_it->second );
+//        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+//    }
 }
 
 
