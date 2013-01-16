@@ -15,25 +15,25 @@ namespace ofxScene{
     public:
         
         Mesh(){
-            setDefaultVars();
+            setDefaults();
         };
         Mesh( Geometry& _geometry, Shader& _shader ){
-            setDefaultVars();
+            setDefaults();
             init( _geometry, _shader );
         }
         
         Mesh( Geometry& _geometry, Shader* _shader ){
-            setDefaultVars();
+            setDefaults();
             init( _geometry, _shader );
         }
         
         Mesh( Geometry* _geometry, Shader& _shader ){
-            setDefaultVars();
+            setDefaults();
             init( _geometry, _shader );
         }
         
         Mesh( Geometry* _geometry, Shader* _shader ){
-            setDefaultVars();
+            setDefaults();
             init( _geometry, _shader );
         }
         
@@ -42,7 +42,7 @@ namespace ofxScene{
             removeAllocatedGeometry();
         };
         
-        void setDefaultVars(){
+        void setDefaults(){
             lastFrame = -1;
             parent = NULL;
             wireframe = false;

@@ -33,20 +33,20 @@ void testApp::setup(){
     
     spotLight.setCutoff(.9);
     spotLight.setPosition(ofVec3f(0,300,0));
+    spotLight.setColor( 1.1,1.1,1.2 );
     scene.add( spotLight );
     
-    spotLightMesh.init(new ofxScene::ConeGeometry(12,30),
-                      new ofxScene::FlatMaterial() );
+    spotLightMesh.init(new ofxScene::ConeGeometry(12,30), new ofxScene::FlatMaterial() );
     spotLightMesh.position = spotLight.getPosition();
     spotLightMesh.wireframe = true;
     spotLightMesh.doubleSided = true;
-    spotLightMesh.shader->setUniform( "Diffuse", &spotLightColor );//link "Diffuse" uniform to spotLightColor. it will automatically update everyframe
+    spotLightMesh.shader->setUniform( "Diffuse", spotLight.getColor() );
     scene.add( spotLightMesh );
     
 //cube mesh
     cube.init(new ofxScene::CubeGeometry(60,60,60),
               new ofxScene::LambertMaterial(ofVec3f(1),                         //diffuse
-                                            ofVec3f(.25,.25,0),                   //ambient
+                                            ofVec3f(.25,.25,0),                 //ambient
                                             1.,                                 //alpha
                                             &oleImage.getTextureReference()) ); //texture
     cube.position.set(150,150,0);
@@ -58,7 +58,7 @@ void testApp::setup(){
                                                                             ofVec3f(1.1),                           //specular
                                                                             ofVec3f(.1),                            //ambient
                                                                             1,                                      //alpha
-                                                                            128,                                    //shineness
+                                                                            64,                                     //shineness
                                                                             &globeImage.getTextureReference() ) );  //texture map
     sphere->position.y += 150;
     scene.add( sphere );
@@ -74,7 +74,6 @@ void testApp::setup(){
         if(i > 0){
             nestedMeshes[i-1].addChild( nestedMeshes[i] );
         }
-        
         scene.add( nestedMeshes[i] );
     }
     nestedMeshes[0].position.set( -150, 150, 0 );
@@ -107,23 +106,13 @@ void testApp::setup(){
 
     
 //loading geometry from file
-    waltHead.init(new ofxScene::Geometry(),
-                  new ofxScene::PhongMaterial(ofVec3f(.4,.4,.75),   //diffuse
-                                              ofVec3f(.8),          //specular
-                                              ofVec3f(0),           //ambient
-                                              1,                    //alpha
-                                              16) );                //shininess
+    waltHead.init(new ofxScene::Geometry(), new ofxScene::PhongMaterial(ofVec3f(.6,.6,.95)));
     waltHead.geometry->load( "waltHeads/walt_medium.obj" );//http://davidoreilly.com/post/18087489343/disneyhead
     waltHead.position.set( -150, -150, 0 );
     waltHead.scale.set( 1.75 );
     scene.add( waltHead );
     
-    waltHead1.init( waltHead.geometry,
-                   new ofxScene::PhongMaterial(ofVec3f(.3), //diffuse
-                                               ofVec3f(1),  //specular
-                                               ofVec3f(0),  //ambient
-                                               1,           //alpha
-                                               64) );       //shininess
+    waltHead1.init( waltHead.geometry, new ofxScene::PhongMaterial(ofVec3f(235,180,173)/255.f));
     waltHead1.position.set( 0, -150, 0 );
     waltHead1.scale.set( 1.75 );
     scene.add( waltHead1 );
@@ -135,8 +124,7 @@ void testApp::setup(){
     scene.add( waltHead2 );
     
 //ground plane
-    plane.init(new ofxScene::PlaneGeometry(600,600,20,20),
-               dynamicMesh.shader);
+    plane.init(new ofxScene::PlaneGeometry(600,600,20,20), dynamicMesh.shader);
     plane.position.set(0.,-250, 0);
     plane.rotate(-90, 1, 0, 0);
     scene.add( plane );
@@ -168,8 +156,6 @@ void testApp::update(){
     //rotate spotlight and change it's color
     spotLight.setDirection(sin(elapsedTime/2), -abs(cos(elapsedTime/2)), 0);
     spotLightMesh.rotateTo( spotLight.getDirection() * ofVec3f(-1,1,1) );
-    spotLightColor.set(1.1) ;//spotLight.getDirection()*.5+.5;
-    spotLight.setColor( spotLightColor );
     
     //mesh orientations
     cube.rotate( sin(elapsedTime*.3)*180., cos(elapsedTime*.3)*180., 0 );
@@ -180,9 +166,9 @@ void testApp::update(){
     
     //parented meshes
     for (int i=0; i<nestedMeshes.size(); i++) {
-        nestedMeshes[i].rotate(10 * sin(elapsedTime+float(i*.1)),   //x axis
+        nestedMeshes[i].rotate(10 * sin(elapsedTime+.1*i),   //x axis
                                0,                                   //y axis
-                               10 * cos(elapsedTime+float(i*.1)));  //z axis
+                               10 * cos(elapsedTime+.1*i));  //z axis
     }
     
     //dynamic geometry
@@ -199,7 +185,7 @@ void testApp::update(){
     ofxScene::Geometry* g = plane.geometry;
     float nval = elapsedTime ;
     for(int i=0; i<g->vertices.size(); i++){
-        g->vertices[i].z = sin(g->vertices[i].x*.01+nval) * cos(g->vertices[i].y*.01+nval) * 50.;
+        g->vertices[i].z = sin(g->vertices[i].x*.01+nval) * cos(g->vertices[i].y*.01+nval) * 80.;
     }
     g->calcVertexNotmals();
     plane.geometry->calcTangents();

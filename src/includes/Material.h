@@ -214,7 +214,7 @@ namespace ofxScene{
             return chunck;
         }
         
-        string randomChunck(){
+        string randomFunc(){
             string chunck;
             chunck += "float random(float seed) {\n";
             chunck += "    return fract(sin(dot(gl_FragCoord.xyz + seed, vec3(12.9898, 78.233, 151.7182))) * 43758.5453 + seed);\n";
@@ -227,6 +227,88 @@ namespace ofxScene{
             return chunck;
         }
         
+        string snoise3fFunc(){
+            
+            string outstring;
+            
+            outstring += "vec4 permute( vec4 x ) {\n";
+            outstring += "	return mod( ( ( x * 34.0 ) + 1.0 ) * x, 289.0 );\n";
+            outstring += "}\n";
+            
+            outstring += "vec4 taylorInvSqrt( vec4 r ) {\n";
+            outstring += "	return 1.79284291400159 - 0.85373472095314 * r;\n";
+            outstring += "}\n";
+            
+            outstring += "float snoise( vec3 v ) {\n";
+            outstring += "	const vec2 C = vec2( 1.0 / 6.0, 1.0 / 3.0 );\n";
+            outstring += "	const vec4 D = vec4( 0.0, 0.5, 1.0, 2.0 );\n";
+            
+            outstring += "	// First corner\n";
+            outstring += "	vec3 i  = floor( v + dot( v, C.yyy ) );\n";
+            outstring += "	vec3 x0 = v - i + dot( i, C.xxx );\n";
+            
+            outstring += "	// Other corners\n";
+            outstring += "	vec3 g = step( x0.yzx, x0.xyz );\n";
+            outstring += "	vec3 l = 1.0 - g;\n";
+            outstring += "	vec3 i1 = min( g.xyz, l.zxy );\n";
+            outstring += "	vec3 i2 = max( g.xyz, l.zxy );\n";
+            
+            outstring += "	vec3 x1 = x0 - i1 + 1.0 * C.xxx;\n";
+            outstring += "	vec3 x2 = x0 - i2 + 2.0 * C.xxx;\n";
+            outstring += "	vec3 x3 = x0 - 1. + 3.0 * C.xxx;\n";
+            
+            outstring += "	// Permutations\n";
+            outstring += "	i = mod( i, 289.0 );\n";
+            outstring += "	vec4 p = permute( permute( permute(\n";
+            outstring += " 	i.z + vec4( 0.0, i1.z, i2.z, 1.0 ) )\n";
+            outstring += "		   + i.y + vec4( 0.0, i1.y, i2.y, 1.0 ) )\n";
+            outstring += "		   + i.x + vec4( 0.0, i1.x, i2.x, 1.0 ) );\n";
+            
+            outstring += "	// Gradients\n";
+            outstring += "	// ( N*N points uniformly over a square, mapped onto an octahedron.)\n";
+            outstring += "	float n_ = 1.0 / 7.0; // N=7\n";
+            outstring += "	vec3 ns = n_ * D.wyz - D.xzx;\n";
+            outstring += "	vec4 j = p - 49.0 * floor( p * ns.z *ns.z );  //  mod(p,N*N)\n";
+            
+            outstring += "	vec4 x_ = floor( j * ns.z );\n";
+            outstring += "	vec4 y_ = floor( j - 7.0 * x_ );    // mod(j,N)\n";
+            
+            outstring += "	vec4 x = x_ *ns.x + ns.yyyy;\n";
+            outstring += "	vec4 y = y_ *ns.x + ns.yyyy;\n";
+            outstring += "	vec4 h = 1.0 - abs( x ) - abs( y );\n";
+            
+            outstring += "	vec4 b0 = vec4( x.xy, y.xy );\n";
+            outstring += "	vec4 b1 = vec4( x.zw, y.zw );\n";
+            
+            outstring += "	vec4 s0 = floor( b0 ) * 2.0 + 1.0;\n";
+            outstring += "	vec4 s1 = floor( b1 ) * 2.0 + 1.0;\n";
+            outstring += "	vec4 sh = -step( h, vec4( 0.0 ) );\n";
+            
+            outstring += "	vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;\n";
+            outstring += "	vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;\n";
+            
+            outstring += "	vec3 p0 = vec3( a0.xy, h.x );\n";
+            outstring += "	vec3 p1 = vec3( a0.zw, h.y );\n";
+            outstring += "	vec3 p2 = vec3( a1.xy, h.z );\n";
+            outstring += "	vec3 p3 = vec3( a1.zw, h.w );\n";
+            
+            outstring += "	// Normalise gradients\n";
+            outstring += "	vec4 norm = taylorInvSqrt( vec4( dot( p0, p0 ), dot( p1, p1 ), dot( p2, p2 ), dot( p3, p3 ) ) );\n";
+            outstring += "	p0 *= norm.x;\n";
+            outstring += "	p1 *= norm.y;\n";
+            outstring += "	p2 *= norm.z;\n";
+            outstring += "	p3 *= norm.w;\n";
+            
+            outstring += "	// Mix final noise value\n";
+            outstring += "	vec4 m = max( 0.6 - vec4( dot( x0, x0 ), dot( x1, x1 ), dot( x2, x2 ), dot( x3, x3 ) ), 0.0 );\n";
+            outstring += "	m = m * m;\n";
+            outstring += "	return 42.0 * dot( m*m, vec4( dot( p0, x0 ), dot( p1, x1 ),\n";
+            outstring += "					  dot( p2, x2 ), dot( p3, x3 ) ) );\n";
+            
+            outstring += "}\n\n";
+            
+            return outstring;
+        }
         float gauss( float x, float sigma ){
             return exp( -(x*x)/(2.*sigma*sigma));
         }
@@ -330,19 +412,87 @@ namespace ofxScene{
     class NormalMaterial : public Material{
     public:
         
-        NormalMaterial( ofTexture* texture = NULL ){
-            setup( texture );
+        NormalMaterial( ofTexture* normalMap = NULL ){
+            init( normalMap );
         }
         ~NormalMaterial(){}
         
-        
-        void setup( ofTexture* texture = NULL ){
-            
+        void init( ofTexture* normalMap = NULL ){
             unload();
             
             vert.clear();
             frag.clear();
             
+			//vertex shader
+			vert += "//uniform matrices\n";
+			vert += "uniform mat4 projectionMatrix;\n";
+			vert += "uniform mat4 modelViewMatrix;\n";
+			vert += "uniform mat4 viewMatrix;\n";
+			vert += "uniform mat3 normalMatrix;\n";
+			
+			vert += "//vertex attributes\n";
+			vert += "attribute vec3 position;\n";
+			vert += "attribute vec3 normal;\n";
+			
+			vert += "//varying\n";
+			vert += "varying vec3 vNorm;\n";
+			vert += "varying vec3 ecPosition3;\n";
+			vert += "varying vec3 eye;\n";
+			
+			vert += "void main(){\n";
+			vert += "    vec4 ecPosition = modelViewMatrix * vec4(position, 1.);\n";
+			vert += "    ecPosition3 = ecPosition.xyz / ecPosition.w;\n";
+			vert += "    gl_Position = projectionMatrix * ecPosition;\n";
+			vert += "    eye = -normalize(ecPosition3);\n";
+			vert += "    vNorm = normalize( normalMatrix * normal );\n";
+			vert += "}\n";
+			
+			
+			//fragment shader
+			frag += "//uniforms\n";
+
+			frag += "//varying\n";
+			frag += "varying vec3 vNorm;\n";
+
+			frag += "void main(){\n";
+			frag += "    vec3 diffuse = .5 + .5 * vNorm;\n";
+			frag += "    gl_FragColor = vec4( diffuse, 1. );\n";
+
+			
+			frag += "}";
+			
+			
+			//load shader
+			setShaderFromStrings( vert, frag );
+			
+			//set uniforms if it compiled
+			if( isCompiled ){
+//				setUniform("color1", color1 );
+//				setUniform("color2", color2 );
+//				setUniform("alpha", alpha );
+//				setUniform("exponent", exponent );
+				
+//				if(texture){
+//					setUniform("mapDim", texture->getWidth(), texture->getHeight() );
+//					setUniform("map", *texture );
+//				}
+			}else{
+				loadDefault();
+				cout << "Material didn't compiile loadinf defualt material instead" << endl;
+			}
+			glUseProgram(0);
+            
+            
+        }
+        
+        /*
+        void setup( ofTexture* texture = NULL ){
+         
+            unload();
+         
+            vert.clear();
+            frag.clear();
+         
             //vertex shader
             vert += "//uniform matrices\n";
             vert += "uniform mat4 projectionMatrix;\n";
@@ -396,6 +546,7 @@ namespace ofxScene{
             glUseProgram(0);
             
         }
+         */
     };
     class FacingRatioMaterial : public Material{
     public:
@@ -514,7 +665,7 @@ namespace ofxScene{
                       ofVec3f _specular = ofVec3f(.8f),
                       ofVec3f _ambient = ofVec3f(0),
                       float _alpha = 1.f,
-                      float _shininess = 128.f,
+                      float _shininess = 64.f,
                       ofTexture* texture = NULL )
         {
           init(_diffuse, _specular, _ambient, _alpha, _shininess, texture);

@@ -109,8 +109,9 @@ namespace ofxScene{
         }
         
         void calcTangents(){
-//            Lengyel, Eric. “Computing Tangent Space Basis Vectors for an Arbitrary Mesh”.
-//            Terathon Software 3D Graphics Library, 2001. http://www.terathon.com/code/tangent.html
+            // Lengyel, Eric. “Computing Tangent Space Basis Vectors for an Arbitrary Mesh”.
+            // Terathon Software 3D Graphics Library, 2001. http://www.terathon.com/code/tangent.html
+            
             if(texCoords.size() != vertices.size() ){
                 cout << "we need texCoords to compute tangents" << endl;
                 return;
@@ -174,7 +175,6 @@ namespace ofxScene{
                 tangents[a] = (t - n * n.dot(t)).normalize();
                 
                 // Calculate handedness
-//                binormals[a] = n.crossed(t).normalize();
                 tangents[a].w = ( n.crossed(t).dot( tan2[a] ) < 0.) ? -1.f : 1.f;
                 binormals[a] = n.crossed( tangents[a] );
             }
